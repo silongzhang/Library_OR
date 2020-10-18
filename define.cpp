@@ -3,9 +3,9 @@
 clock_t start;
 
 
-void printErrorAndExit(const string &str)
-{
+void printErrorAndExit(const string &str, const exception &exc) {
 	cout << "There is an error in " + str + " ! " << endl;
+	cout << "Error information: " << exc.what() << endl;
 	system("pause");
 	exit(1);
 }

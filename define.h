@@ -31,7 +31,7 @@ typedef IloArray<IloBoolVarArray> IloBoolVarArray2;
 typedef IloArray<IloBoolVarArray2> IloBoolVarArray3;
 
 
-void printErrorAndExit(const string &str);
+void printErrorAndExit(const string &str, const exception &exc);
 double runTime(const clock_t &start);
 string getNowTime();
 bool lessThanReal(const double &lhs, const double &rhs, const double &threshold);
