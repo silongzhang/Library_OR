@@ -1,8 +1,8 @@
 #include"ESPPRC.h"
 
 // Check whether this label can extend to vertex j.
-bool Label_ESPPRC::canExtend(const int j) const {
-	return !unreachable.test(j);
+bool Label_ESPPRC::canExtend(const Data_ESPPRC &data, const int j) const {
+	return !unreachable.test(j) && data.ExistingArcs[tail][j];
 }
 
 
@@ -16,6 +16,11 @@ bool operator==(const Consumption_ESPPRC &lhs, const Consumption_ESPPRC &rhs) {
 
 bool operator!=(const Consumption_ESPPRC &lhs, const Consumption_ESPPRC &rhs) {
 	return !(lhs == rhs);
+}
+
+
+bool operator<(const Consumption_ESPPRC &lhs, const Consumption_ESPPRC &rhs) {
+	return lessThanReal(lhs.quantity, rhs.quantity, PPM) && lessThanReal(lhs.time, rhs.time, PPM);
 }
 
 
@@ -62,6 +67,11 @@ bool operator==(const Cost_ESPPRC &lhs, const Cost_ESPPRC &rhs) {
 
 bool operator!=(const Cost_ESPPRC &lhs, const Cost_ESPPRC &rhs) {
 	return !(lhs == rhs);
+}
+
+
+bool operator<(const Cost_ESPPRC &lhs, const Cost_ESPPRC &rhs) {
+	return lessThanReal(lhs.reducedCost, rhs.reducedCost, PPM);
 }
 
 
@@ -125,6 +135,7 @@ void Label_ESPPRC::renewUnreachable(const Data_ESPPRC &data) {
 void Label_ESPPRC::extend(const Data_ESPPRC &data, const int j) {
 	try {
 		if (unreachable.test(j)) throw exception("The vertex is unreachable.");
+		if (!data.ExistingArcs[tail][j]) throw exception("The arc dose not exist in the network.");
 
 		path.push_back(j);
 		tail = j;
@@ -136,6 +147,24 @@ void Label_ESPPRC::extend(const Data_ESPPRC &data, const int j) {
 	}
 	catch (const exception &exc) {
 		printErrorAndExit("Label_ESPPRC::extend", exc);
+	}
+}
+
+
+// Constructor.
+Label_ESPPRC::Label_ESPPRC(const Data_ESPPRC &data, const int origin, const Consumption_ESPPRC &csp, const Cost_ESPPRC &cst) {
+	try {
+		path = { origin };
+		tail = origin;
+		consumption = csp;
+		cost = cst;
+
+		unreachable = data.UnreachableForever[origin];
+		unreachable.set(origin, true);
+		renewUnreachable(data);
+	}
+	catch (const exception &exc) {
+		printErrorAndExit("Label_ESPPRC::Label_ESPPRC", exc);
 	}
 }
 
@@ -155,6 +184,8 @@ bool Label_ESPPRC::feasible(const Data_ESPPRC &data) const {
 		auto pre = path.begin();
 		if (!csp.feasible(data, *pre)) return false;
 		for (auto suc = pre + 1; suc != path.end(); ++pre, ++suc) {
+			if (!data.ExistingArcs[*pre][*suc]) return false;
+
 			csp.extend(data, *pre, *suc);
 			if (!csp.feasible(data, *suc)) return false;
 
@@ -167,5 +198,19 @@ bool Label_ESPPRC::feasible(const Data_ESPPRC &data) const {
 		printErrorAndExit("Label_ESPPRC::feasible", exc);
 	}
 	return true;
+}
+
+
+bool operator<=(const bitset<Max_Num_Vertex> &lhs, const bitset<Max_Num_Vertex> &rhs) {
+	return (lhs | rhs) == rhs;
+}
+
+
+// Dominance rule. Whether label lhs can dominate label rhs.
+bool Dominate(const Label_ESPPRC &lhs, const Label_ESPPRC &rhs) {
+	return lhs.getConsumption() < rhs.getConsumption() &&
+		lhs.getCost() < rhs.getCost() &&
+		lhs.getTail() == rhs.getTail() &&
+		lhs.getUnreachable() <= rhs.getUnreachable();
 }
 

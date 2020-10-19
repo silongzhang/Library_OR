@@ -50,6 +50,7 @@ public:
 class Consumption_ESPPRC {
 	friend bool operator==(const Consumption_ESPPRC &lhs, const Consumption_ESPPRC &rhs);
 	friend bool operator!=(const Consumption_ESPPRC &lhs, const Consumption_ESPPRC &rhs);
+	friend bool operator<(const Consumption_ESPPRC &lhs, const Consumption_ESPPRC &rhs);
 private:
 	QuantityType quantity;
 	DistanceType distance;
@@ -57,6 +58,11 @@ private:
 	TimeType departureTime;
 
 public:
+	// Default constructor.
+	Consumption_ESPPRC() {}
+	// Constructor.
+	Consumption_ESPPRC(const QuantityType quant, const DistanceType dist, const TimeType depTime) : 
+		quantity(quant), distance(dist), departureTime(depTime) { time = departureTime; }
 	// reset this object
 	void reset() { quantity = 0; distance = 0; time = departureTime; }
 	// Renew this object after extending from vertex i to vertex j.
@@ -68,6 +74,7 @@ public:
 class Cost_ESPPRC {
 	friend bool operator==(const Cost_ESPPRC &lhs, const Cost_ESPPRC &rhs);
 	friend bool operator!=(const Cost_ESPPRC &lhs, const Cost_ESPPRC &rhs);
+	friend bool operator<(const Cost_ESPPRC &lhs, const Cost_ESPPRC &rhs);
 private:
 	double realCost;
 	double reducedCost;
@@ -88,9 +95,19 @@ private:
 	Cost_ESPPRC cost;
 
 public:
+	// Default constructor.
+	Label_ESPPRC() {}
 	// Constructor.
+	Label_ESPPRC(const Data_ESPPRC &data, const int origin, const Consumption_ESPPRC &csp, const Cost_ESPPRC &cst);
+
+	vector<int> getPath() const { return path; }
+	int getTail() const { return tail; }
+	bitset<Max_Num_Vertex> getUnreachable() const { return unreachable; }
+	Consumption_ESPPRC getConsumption() const { return consumption; }
+	Cost_ESPPRC getCost() const { return cost; }
+
 	// Check whether this label can extend to vertex j.
-	bool canExtend(const int j) const;
+	bool canExtend(const Data_ESPPRC &data, const int j) const;
 	// Renew unreachable indicator for vertex j.
 	void renewUnreachable(const Data_ESPPRC &data, const int j);
 	// Renew unreachable indicators for all vertices.
@@ -102,5 +119,7 @@ public:
 };
 
 // Bitwise operation for checking whether unreachable lhs is a subset of unreachable rhs.
-// Dominance rule.
+bool operator<=(const bitset<Max_Num_Vertex> &lhs, const bitset<Max_Num_Vertex> &rhs);
+// Dominance rule. Whether label lhs can dominate label rhs.
+bool Dominate(const Label_ESPPRC &lhs, const Label_ESPPRC &rhs);
 
