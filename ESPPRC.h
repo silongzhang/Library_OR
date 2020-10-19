@@ -48,20 +48,35 @@ public:
 };
 
 class Consumption_ESPPRC {
-public:
+	friend bool operator==(const Consumption_ESPPRC &lhs, const Consumption_ESPPRC &rhs);
+	friend bool operator!=(const Consumption_ESPPRC &lhs, const Consumption_ESPPRC &rhs);
+private:
 	QuantityType quantity;
 	DistanceType distance;
 	TimeType time;
+	TimeType departureTime;
 
-	// Renew this object after extending to vertex j.
+public:
+	// reset this object
+	void reset() { quantity = 0; distance = 0; time = departureTime; }
+	// Renew this object after extending from vertex i to vertex j.
+	void extend(const Data_ESPPRC &data, const int i, const int j);
+	// check whether this object is feasible at vertex i (resource constraints are all satisfied).
+	bool feasible(const Data_ESPPRC &data, const int i) const;
 };
 
 class Cost_ESPPRC {
-public:
+	friend bool operator==(const Cost_ESPPRC &lhs, const Cost_ESPPRC &rhs);
+	friend bool operator!=(const Cost_ESPPRC &lhs, const Cost_ESPPRC &rhs);
+private:
 	double realCost;
 	double reducedCost;
 
-	// Renew this object after extending to vertex j.
+public:
+	// reset this object
+	void reset() { realCost = 0; reducedCost = 0; }
+	// Renew this object after extending from vertex i to vertex j.
+	void extend(const Data_ESPPRC &data, const int i, const int j);
 };
 
 class Label_ESPPRC {
@@ -77,11 +92,15 @@ public:
 	// Check whether this label can extend to vertex j.
 	bool canExtend(const int j) const;
 	// Renew unreachable indicator for vertex j.
+	void renewUnreachable(const Data_ESPPRC &data, const int j);
 	// Renew unreachable indicators for all vertices.
+	void renewUnreachable(const Data_ESPPRC &data);
 	// Extend this lable to vertex j.
+	void extend(const Data_ESPPRC &data, const int j);
 	// Check whether this label is a feasible solution.
+	bool feasible(const Data_ESPPRC &data) const;
 };
 
-// Dominance rule.
 // Bitwise operation for checking whether unreachable lhs is a subset of unreachable rhs.
+// Dominance rule.
 
