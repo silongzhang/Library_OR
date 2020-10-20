@@ -494,9 +494,61 @@ void lbBasedOnOneResourceGivenAmount(const ResourceType type, const Data_Input_E
 			}
 		}
 		*result = ub;
+		auxiliary.clearAndResizeIU(data);
 	}
 	catch (const exception &exc) {
 		printErrorAndExit("lbBasedOnOneResourceGivenAmount", exc);
+	}
+}
+
+
+// Compute lower bounds based on a single type of resource.
+void lbBasedOnOneResource(const ResourceType type, const Data_Input_ESPPRC &data, Data_Auxiliary_ESPPRC &auxiliary) {
+	try {
+		int indexLimit;
+		if (type == ResourceType::Quantity) {
+			indexLimit = data.sizeQuantLB;
+		}
+		else if (type == ResourceType::Distance) {
+			indexLimit = data.sizeDistLB;
+		}
+		else if (type == ResourceType::Time) {
+			indexLimit = data.sizeTimeLB;
+		}
+		else throw exception("The input resource type is wrong.");
+
+		for (int index = 0; index < indexLimit; ++index) {
+			for (int i = 1; i < data.NumVertices; ++i) {
+				lbBasedOnOneResourceGivenAmount(type, data, auxiliary, index, i);
+			}
+		}
+	}
+	catch (const exception &exc) {
+		printErrorAndExit("lbBasedOnOneResource", exc);
+	}
+}
+
+
+// Compute lower bounds based on all types of resources.
+void lbBasedOnAllResources(const Data_Input_ESPPRC &data, Data_Auxiliary_ESPPRC &auxiliary) {
+	try {
+		auxiliary.clearAndResizeLB(data);
+		lbBasedOnOneResource(ResourceType::Quantity, data, auxiliary);
+		lbBasedOnOneResource(ResourceType::Distance, data, auxiliary);
+		lbBasedOnOneResource(ResourceType::Time, data, auxiliary);
+
+		for (int q = 0; q < data.sizeQuantLB; ++q) {
+			for (int d = 0; d < data.sizeDistLB; ++d) {
+				for (int t = 0; t < data.sizeTimeLB; ++t) {
+					for (int i = 1; i < data.NumVertices; ++i) {
+						auxiliary.LBQDTI[q][d][t][i] = max({ auxiliary.LBQI[q][i],auxiliary.LBDI[d][i],auxiliary.LBTI[t][i] });
+					}
+				}
+			}
+		}
+	}
+	catch (const exception &exc) {
+		printErrorAndExit("lbBasedOnAllResources", exc);
 	}
 }
 
