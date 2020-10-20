@@ -14,9 +14,9 @@ constexpr auto InfinityNeg = -InfinityPos;
 
 
 typedef int IDType;
-typedef int TimeType;
-typedef int DistanceType;
-typedef int QuantityType;
+typedef double TimeType;
+typedef double DistanceType;
+typedef double QuantityType;
 typedef double CostType;
 typedef double ReducedCostType;
 typedef double CoordinateType;
