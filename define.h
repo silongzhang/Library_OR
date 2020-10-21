@@ -41,6 +41,7 @@ void printSeparator(const int &numOfEnter, const int &vertical, const int &horiz
 	const char &character);
 void printSeparator(const int &numOfEnter, const int &vertical, const int &horizontal,
 	const char &character, ofstream &os);
+void print(const bool allowPrint, ostream &os, const string &str);
 
 template<typename T>
 void print(const T &cont, const int &num) {
@@ -58,6 +59,17 @@ void strToNum(const string &str, T &num) {
 	stringstream ss;
 	ss << str;
 	ss >> num;
+}
+
+
+// transfer number to string
+template<typename T>
+string numToStr(const T &num) {
+	string str;
+	stringstream ss;
+	ss << num;
+	ss >> str;
+	return str;
 }
 
 

@@ -66,3 +66,10 @@ bool equalToReal(const double &lhs, const double &rhs, const double &threshold) 
 	return !(lessThanReal(lhs, rhs, threshold) || greaterThanReal(lhs, rhs, threshold));
 }
 
+
+void print(const bool allowPrint, ostream &os, const string &str) {
+	if (allowPrint) {
+		os << str << endl;
+	}
+}
+

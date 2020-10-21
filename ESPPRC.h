@@ -8,6 +8,7 @@ Important Assumptions:
 1. Both the origin and destination locate in the depot, and the depot is vertex 0.
 2. Any feasible solution should contain at least one vertex in addition to the origin and destination.
 3. Resource consumption always is nonnegative and satisfies triangle inequalities.
+4. Departure time is assumed to be the earliest departure time from the depot.
 
 */
 
@@ -49,10 +50,14 @@ public:
 	double maxReducedCost;
 	// The number of returned routes cannot exceed this parameter.
 	int maxNumRoutesReturned;
-	// Files.
-	string inputFile;
-	string resultFile;
-	string logFile;
+	// Whether printing is allowed.
+	bool allowPrintLog;
+};
+
+class Data_Output_ESPPRC {
+public:
+	// Output streams.
+	ostream osLog;
 };
 
 class Data_Auxiliary_ESPPRC {
@@ -75,7 +80,6 @@ public:
 	long long numSavedLabels;
 	long long numCompletedRoutes;
 	// Time elapsed.
-	double timePreprocessing;
 	double timeBoundQuantity;
 	double timeBoundDistance;
 	double timeBoundTime;
@@ -90,7 +94,7 @@ public:
 			numDeletedLabelsDominance = numSavedLabels = numCompletedRoutes = 0;
 	}
 	void resetTime() {
-		timePreprocessing = timeBoundQuantity = timeBoundDistance = timeBoundTime = timeBound = timeDP = timeOverall;
+		timeBoundQuantity = timeBoundDistance = timeBoundTime = timeBound = timeDP = timeOverall = 0;
 	}
 };
 
@@ -212,4 +216,8 @@ void lbBasedOnOneResource(const ResourceType type, const Data_Input_ESPPRC &data
 void lbBasedOnAllResources(const Data_Input_ESPPRC &data, Data_Auxiliary_ESPPRC &auxiliary);
 // Initiate.
 bool initiateForDPAlgorithmESPPRC(const Data_Input_ESPPRC &data, Data_Auxiliary_ESPPRC &auxiliary);
+// Calculate the lower bound for a label.
+double lbOfALabelInDPAlgorithmESPPRC(const Data_Input_ESPPRC &data, const Data_Auxiliary_ESPPRC &auxiliary, const Label_ESPPRC &label);
+// Number of labels.
+long long numOfLabels(const vector<unordered_map<bitset<Max_Num_Vertex>, list<Label_ESPPRC>>> &vecMpBtstLst);
 

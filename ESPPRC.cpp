@@ -1,5 +1,6 @@
 #include"ESPPRC.h"
 
+extern clock_t start;
 extern clock_t last;
 
 // Check whether this label can extend to vertex j.
@@ -434,7 +435,7 @@ void lbBasedOnOneResourceGivenAmount(const ResourceType type, const Data_Input_E
 		cst.reset();
 
 		Label_ESPPRC initialLable(data, origin, csp, cst);
-		if (initialLable.getUnreachable().test(0)) {
+		if (initialLable.getUnreachable().test(0) || origin == 0) {
 			*result = InfinityPos;
 			return;
 		}
@@ -442,18 +443,16 @@ void lbBasedOnOneResourceGivenAmount(const ResourceType type, const Data_Input_E
 		double ub = InfinityPos;
 		auxiliary.clearAndResizeIU(data);
 		auxiliary.currentIU[origin][initialLable.getUnreachable()] = { initialLable };
-		long long numCurrentLabels = 1;
 
-		while (numCurrentLabels > 0) {
+		while (numOfLabels(auxiliary.currentIU) > 0) {
 			for (int i = 1; i < data.NumVertices; ++i) {
 				for (const auto &prUnrLst : auxiliary.currentIU[i]) {
 					for (const auto &parentLabel : prUnrLst.second) {
 						if (parentLabel.getUnreachable().test(0)) throw exception("This label cannot extend to the depot.");
 						for (int j = 0; j < data.NumVertices; ++j) {
-							if (i == j) continue;
 							if (!parentLabel.canExtend(data, j)) continue;
 
-							Label_ESPPRC childLabel = parentLabel;
+							Label_ESPPRC childLabel(parentLabel);
 							childLabel.extend(data, j);
 							if (j == 0 && lessThanReal(childLabel.getReducedCost(), ub, PPM)) {
 								ub = childLabel.getReducedCost();
@@ -479,7 +478,6 @@ void lbBasedOnOneResourceGivenAmount(const ResourceType type, const Data_Input_E
 				}
 			}
 
-			numCurrentLabels = 0;
 			for (int i = 1; i < data.NumVertices; ++i) {
 				for (const auto &prBtstLst : auxiliary.currentIU[i]) {
 					for (const auto &elem : prBtstLst.second) {
@@ -488,9 +486,6 @@ void lbBasedOnOneResourceGivenAmount(const ResourceType type, const Data_Input_E
 				}
 
 				auxiliary.currentIU[i] = auxiliary.nextIU[i];
-				for (const auto &prBtstLst : auxiliary.currentIU[i]) {
-					numCurrentLabels += prBtstLst.second.size();
-				}
 
 				auxiliary.nextIU[i].clear();
 			}
@@ -597,27 +592,161 @@ bool initiateForDPAlgorithmESPPRC(const Data_Input_ESPPRC &data, Data_Auxiliary_
 }
 
 
-// Dynamic programming algorithm for ESPPRC.
-set<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> DPAlgorithmESPPRC(const Data_Input_ESPPRC &data, Data_Auxiliary_ESPPRC &auxiliary) {
-	set<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> result;
+// Calculate the lower bound for a label.
+double lbOfALabelInDPAlgorithmESPPRC(const Data_Input_ESPPRC &data, const Data_Auxiliary_ESPPRC &auxiliary, const Label_ESPPRC &label) {
+	double lb;
 	try {
-		// Reset elapsed time.
-		auxiliary.resetTime();
+		int q = floor((data.QuantityWindow[0].second - label.getQuantity()) / data.incrementQuantLB);
+		int d = floor((data.DistanceWindow[0].second - label.getDistance()) / data.incrementDistLB);
+		int t = floor((data.TimeWindow[0].second - label.getTime()) / data.incrementTimeLB);
+		int i = label.getTail();
 
-		// Read data and preprocess.
-		last = clock();
-		// To be added.
-		auxiliary.timePreprocessing = runTime(last);
+		if (q < 0 || d < 0 || t < 0 || i < 1) throw exception();
+		else if (q < data.sizeQuantLB && d < data.sizeDistLB && t < data.sizeTimeLB && i < data.NumVertices) {
+			lb = auxiliary.LBQDTI[q][d][t][i] + label.getReducedCost();
+		}
+		else lb = InfinityNeg;
+	}
+	catch (const exception &exc) {
+		printErrorAndExit("lbOfALabelInDPAlgorithmESPPRC", exc);
+	}
+	return lb;
+}
+
+
+// Number of labels.
+long long numOfLabels(const vector<unordered_map<bitset<Max_Num_Vertex>, list<Label_ESPPRC>>> &vecMpBtstLst) {
+	long long num = 0;
+	try {
+		for (const auto &first : vecMpBtstLst) {
+			for (const auto &second : first) {
+				num += second.second.size();
+			}
+		}
+	}
+	catch (const exception &exc) {
+		printErrorAndExit("numOfLabels", exc);
+	}
+	return num;
+}
+
+
+// Dynamic programming algorithm for ESPPRC.
+multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> DPAlgorithmESPPRC(const Data_Input_ESPPRC &data, Data_Auxiliary_ESPPRC &auxiliary, 
+	Data_Output_ESPPRC &output) {
+	multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> result;
+	try {
+		if (data.NumVertices > Max_Num_Vertex) throw exception("The value of Max_Num_Vertex should be increased.");
+
+		string strLog = "Elapsed time: " + numToStr(runTime(start)) + '\t' + "The procedure titled DPAlgorithmESPPRC is running." + '\n';
+		print(data.allowPrintLog, output.osLog, strLog);
+
+		// Reset.
+		auxiliary.clearAndResizeIU(data);
+		auxiliary.resetTime();
 
 		// Compute lower bounds for labels.
 		lbBasedOnAllResources(data, auxiliary);
+		strLog = "Elapsed time: " + numToStr(runTime(start)) + '\t' + "Lower bounds computing is finished." + '\n';
+		print(data.allowPrintLog, output.osLog, strLog);
 
 		// DP Algorithm
 		last = clock();
-		// To be added.
-		auxiliary.timeDP = runTime(last);
+		strLog = "Elapsed time: " + numToStr(runTime(start)) + '\t' + "DP procedure is running." + '\n';
+		print(data.allowPrintLog, output.osLog, strLog);
+		
+		// Initiate.
+		if (!initiateForDPAlgorithmESPPRC(data, auxiliary)) {
+			print(data.allowPrintLog, output.osLog, "No feasible routes.");
+			return result;
+		}
 
-		auxiliary.timeOverall = auxiliary.timePreprocessing + auxiliary.timeBound + auxiliary.timeDP;
+		double ub = InfinityPos;
+		long long iter = 0;
+		while (numOfLabels(auxiliary.currentIU) > 0) {
+			for (int i = 1; i < data.NumVertices; ++i) {
+				for (const auto &prBtstLst : auxiliary.currentIU[i]) {
+					for (const auto &parentLabel : prBtstLst.second) {
+						if (parentLabel.getUnreachable().test(0)) throw exception("This label cannot extend to the depot.");
+						for (int j = 0; j < data.NumVertices; ++j) {
+							if (!parentLabel.canExtend(data, j)) {
+								++auxiliary.numUnGeneratedLabelsInfeasibility;
+								continue;
+							}
+
+							++auxiliary.numGeneratedLabels;
+							Label_ESPPRC childLabel(parentLabel);
+							childLabel.extend(data, j);
+
+							if (j == 0) {
+								++auxiliary.numCompletedRoutes;
+								result.insert(childLabel);
+								if (lessThanReal(childLabel.getReducedCost(), ub, PPM)) {
+									ub = childLabel.getReducedCost();
+								}
+							}
+							else if (greaterThanReal(lbOfALabelInDPAlgorithmESPPRC(data, auxiliary, childLabel), ub, PPM)) {
+								++auxiliary.numPrunedLabelsBound;
+							}
+							else if (labelIsDominated(auxiliary.pastIU[j], childLabel) ||
+								labelIsDominated(auxiliary.currentIU[j], childLabel) ||
+								labelIsDominated(auxiliary.nextIU[j], childLabel)) {
+								++auxiliary.numUnInsertedLabelsDominance;
+							}
+							else {
+								auxiliary.numDeletedLabelsDominance += discardAccordingToDominanceRule(auxiliary.pastIU[j], childLabel) + 
+									discardAccordingToDominanceRule(auxiliary.currentIU[j], childLabel) + 
+									discardAccordingToDominanceRule(auxiliary.nextIU[j], childLabel);
+
+								insertLabel(auxiliary.nextIU[j], childLabel);
+							}
+						}
+					}
+				}
+			}
+
+			for (int i = 1; i < data.NumVertices; ++i) {
+				for (const auto &prBtstLst : auxiliary.currentIU[i]) {
+					for (const auto &elem : prBtstLst.second) {
+						insertLabel(auxiliary.pastIU[i], elem);
+					}
+				}
+
+				auxiliary.currentIU[i] = auxiliary.nextIU[i];
+
+				auxiliary.nextIU[i].clear();
+			}
+
+			strLog = "**************************************" + '\n';
+			strLog += "Elapsed time: " + numToStr(runTime(start)) + '\t' + "Iteration: " + numToStr(++iter) + '\t' +
+				"Upper bound: " + numToStr(ub) + '\n';
+			strLog += "UnGenerated: " + numToStr(auxiliary.numUnGeneratedLabelsInfeasibility) + '\t' +
+				"Generated: " + numToStr(auxiliary.numGeneratedLabels) + '\t' + "Completed: " + numToStr(auxiliary.numCompletedRoutes) + '\n';
+			strLog += "BoundPruned: " + numToStr(auxiliary.numPrunedLabelsBound) + '\t' +
+				"UnInsertedDominance: " + numToStr(auxiliary.numUnInsertedLabelsDominance) + '\t' +
+				"DeletedDominance: " + numToStr(auxiliary.numDeletedLabelsDominance) + '\n';
+			print(data.allowPrintLog, output.osLog, strLog);
+		}
+
+		auxiliary.numSavedLabels = numOfLabels(auxiliary.pastIU) + auxiliary.numCompletedRoutes;
+		strLog = "**************************************" + '\n';
+		strLog += "Saved: " + numToStr(auxiliary.numSavedLabels) + '\n';
+		print(data.allowPrintLog, output.osLog, strLog);
+
+		if (result.empty()) throw exception();
+		auto endPos = result.begin();
+		int numRet = 0;
+		for (; endPos != result.end() && numRet < data.maxNumRoutesReturned && 
+			lessThanReal(endPos->getReducedCost(), data.maxReducedCost, PPM); ++endPos, ++numRet) {}
+
+		result = multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion>(result.begin(), endPos);
+		
+		auxiliary.timeDP = runTime(last);
+		auxiliary.timeOverall = auxiliary.timeBound + auxiliary.timeDP;
+		auxiliary.clearAndResizeIU(data);
+
+		strLog = "Elapsed time: " + numToStr(runTime(start)) + '\t' + "The procedure titled DPAlgorithmESPPRC is finished." + '\n';
+		print(data.allowPrintLog, output.osLog, strLog);
 	}
 	catch (const exception &exc) {
 		printErrorAndExit("DPAlgorithmESPPRC", exc);
