@@ -161,6 +161,10 @@ Label_ESPPRC::Label_ESPPRC(const Data_Input_ESPPRC &data, const int origin, cons
 		tail = origin;
 		consumption = csp;
 		cost = cst;
+		if (!consumption.feasible(data, tail)) {
+			unreachable.set();
+			return;
+		}
 
 		unreachable = data.UnreachableForever[origin];
 		unreachable.set(origin, true);
