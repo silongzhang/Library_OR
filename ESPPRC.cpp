@@ -733,7 +733,7 @@ multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> DPAlgorithmESPPRC(const Data
 		strLog += "Saved: " + numToStr(auxiliary.numSavedLabels) + '\n';
 		print(data.allowPrintLog, output.osLog, strLog);
 
-		if (result.empty()) throw exception();
+		if (result.empty()) throw exception("The result should not be empty.");
 		auto endPos = result.begin();
 		int numRet = 0;
 		for (; endPos != result.end() && numRet < data.maxNumRoutesReturned && 
