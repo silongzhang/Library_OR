@@ -1,6 +1,7 @@
 #include"define.h"
 
 clock_t start;
+clock_t last;
 
 
 void printErrorAndExit(const string &str, const exception &exc) {

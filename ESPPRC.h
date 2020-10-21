@@ -45,6 +45,14 @@ public:
 	int sizeDistLB;
 	TimeType incrementTimeLB;
 	int sizeTimeLB;
+	// The reduced cost of returned routes cannot exceed this parameter.
+	double maxReducedCost;
+	// The number of returned routes cannot exceed this parameter.
+	int maxNumRoutesReturned;
+	// Files.
+	string inputFile;
+	string resultFile;
+	string logFile;
 };
 
 class Data_Auxiliary_ESPPRC {
@@ -58,9 +66,32 @@ public:
 	vector<unordered_map<bitset<Max_Num_Vertex>, list<Label_ESPPRC>>> pastIU;
 	vector<unordered_map<bitset<Max_Num_Vertex>, list<Label_ESPPRC>>> currentIU;
 	vector<unordered_map<bitset<Max_Num_Vertex>, list<Label_ESPPRC>>> nextIU;
+	// Numbers of labels.
+	long long numUnGeneratedLabelsInfeasibility;
+	long long numGeneratedLabels;
+	long long numPrunedLabelsBound;
+	long long numUnInsertedLabelsDominance;
+	long long numDeletedLabelsDominance;
+	long long numSavedLabels;
+	long long numCompletedRoutes;
+	// Time elapsed.
+	double timePreprocessing;
+	double timeBoundQuantity;
+	double timeBoundDistance;
+	double timeBoundTime;
+	double timeBound;
+	double timeDP;
+	double timeOverall;
 
 	void clearAndResizeLB(const Data_Input_ESPPRC &data);
 	void clearAndResizeIU(const Data_Input_ESPPRC &data);
+	void resetNumber() {
+		numUnGeneratedLabelsInfeasibility = numGeneratedLabels = numPrunedLabelsBound = numUnInsertedLabelsDominance = 
+			numDeletedLabelsDominance = numSavedLabels = numCompletedRoutes = 0;
+	}
+	void resetTime() {
+		timePreprocessing = timeBoundQuantity = timeBoundDistance = timeBoundTime = timeBound = timeDP = timeOverall;
+	}
 };
 
 class Consumption_ESPPRC {
@@ -146,6 +177,13 @@ public:
 	bool feasible(const Data_Input_ESPPRC &data) const;
 };
 
+class Label_ESPPRC_Sort_Criterion {
+public:
+	bool operator()(const Label_ESPPRC &lhs, const Label_ESPPRC &rhs) const {
+		return lessThanReal(lhs.getReducedCost(), rhs.getReducedCost(), PPM);
+	}
+};
+
 // Bitwise operation for checking whether unreachable lhs is a subset of unreachable rhs.
 bool operator<=(const bitset<Max_Num_Vertex> &lhs, const bitset<Max_Num_Vertex> &rhs);
 // Dominance rule. Whether label lhs can dominate label rhs.
@@ -172,4 +210,6 @@ void lbBasedOnOneResourceGivenAmount(const ResourceType type, const Data_Input_E
 void lbBasedOnOneResource(const ResourceType type, const Data_Input_ESPPRC &data, Data_Auxiliary_ESPPRC &auxiliary);
 // Compute lower bounds based on all types of resources.
 void lbBasedOnAllResources(const Data_Input_ESPPRC &data, Data_Auxiliary_ESPPRC &auxiliary);
+// Initiate.
+bool initiateForDPAlgorithmESPPRC(const Data_Input_ESPPRC &data, Data_Auxiliary_ESPPRC &auxiliary);
 

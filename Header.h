@@ -25,15 +25,16 @@
 #include<functional>
 
 
+using std::ostream;
 using std::cout;
+using std::ofstream;
 using std::cerr;
+using std::ifstream;
+using std::stringstream;
+using std::ostringstream;
 using std::endl;
 using std::fixed;
 using std::setprecision;
-using std::ifstream;
-using std::ofstream;
-using std::stringstream;
-using std::ostringstream;
 using std::exception;
 using std::thread;
 using std::mutex;

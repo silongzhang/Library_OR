@@ -1,5 +1,7 @@
 #include"ESPPRC.h"
 
+extern clock_t last;
+
 // Check whether this label can extend to vertex j.
 bool Label_ESPPRC::canExtend(const Data_Input_ESPPRC &data, const int j) const {
 	return !unreachable.test(j) && data.ExistingArcs[tail][j];
@@ -533,10 +535,20 @@ void lbBasedOnOneResource(const ResourceType type, const Data_Input_ESPPRC &data
 void lbBasedOnAllResources(const Data_Input_ESPPRC &data, Data_Auxiliary_ESPPRC &auxiliary) {
 	try {
 		auxiliary.clearAndResizeLB(data);
-		lbBasedOnOneResource(ResourceType::Quantity, data, auxiliary);
-		lbBasedOnOneResource(ResourceType::Distance, data, auxiliary);
-		lbBasedOnOneResource(ResourceType::Time, data, auxiliary);
 
+		last = clock();
+		lbBasedOnOneResource(ResourceType::Quantity, data, auxiliary);
+		auxiliary.timeBoundQuantity = runTime(last);
+
+		last = clock();
+		lbBasedOnOneResource(ResourceType::Distance, data, auxiliary);
+		auxiliary.timeBoundDistance = runTime(last);
+
+		last = clock();
+		lbBasedOnOneResource(ResourceType::Time, data, auxiliary);
+		auxiliary.timeBoundTime = runTime(last);
+
+		last = clock();
 		for (int q = 0; q < data.sizeQuantLB; ++q) {
 			for (int d = 0; d < data.sizeDistLB; ++d) {
 				for (int t = 0; t < data.sizeTimeLB; ++t) {
@@ -546,9 +558,70 @@ void lbBasedOnAllResources(const Data_Input_ESPPRC &data, Data_Auxiliary_ESPPRC 
 				}
 			}
 		}
+		auxiliary.timeBound = runTime(last) + auxiliary.timeBoundQuantity + auxiliary.timeBoundDistance + auxiliary.timeBoundTime;
 	}
 	catch (const exception &exc) {
 		printErrorAndExit("lbBasedOnAllResources", exc);
 	}
+}
+
+
+// Initiate.
+bool initiateForDPAlgorithmESPPRC(const Data_Input_ESPPRC &data, Data_Auxiliary_ESPPRC &auxiliary) {
+	try {
+		Consumption_ESPPRC csp(0, 0, data.TimeWindow[0].first);
+		Cost_ESPPRC cst;
+		cst.reset();
+		Label_ESPPRC initialLable(data, 0, csp, cst);
+		if (initialLable.getUnreachable().test(0) || initialLable.getUnreachable().count() >= data.NumVertices - 1) {
+			return false;
+		}
+
+		auxiliary.resetNumber();
+		for (int j = 1; j < data.NumVertices; ++j) {
+			if (!initialLable.canExtend(data, j)) {
+				++auxiliary.numUnGeneratedLabelsInfeasibility;
+			}
+			else {
+				++auxiliary.numGeneratedLabels;
+				Label_ESPPRC childLabel(initialLable);
+				childLabel.extend(data, j);
+				auxiliary.currentIU[j][childLabel.getUnreachable()].push_front(childLabel);
+			}
+		}
+	}
+	catch (const exception &exc) {
+		printErrorAndExit("initiateForDPAlgorithmESPPRC", exc);
+	}
+	return auxiliary.numGeneratedLabels > 0;
+}
+
+
+// Dynamic programming algorithm for ESPPRC.
+set<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> DPAlgorithmESPPRC(const Data_Input_ESPPRC &data, Data_Auxiliary_ESPPRC &auxiliary) {
+	set<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> result;
+	try {
+		// Reset elapsed time.
+		auxiliary.resetTime();
+
+		// Read data and preprocess.
+		last = clock();
+		// To be added.
+		auxiliary.timePreprocessing = runTime(last);
+
+		// Compute lower bounds for labels.
+		lbBasedOnAllResources(data, auxiliary);
+
+		// DP Algorithm
+		last = clock();
+		// To be added.
+		auxiliary.timeDP = runTime(last);
+
+		auxiliary.timeOverall = auxiliary.timePreprocessing + auxiliary.timeBound + auxiliary.timeDP;
+	}
+	catch (const exception &exc) {
+		printErrorAndExit("DPAlgorithmESPPRC", exc);
+	}
+	return result;
 }
 
