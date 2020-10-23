@@ -3,6 +3,7 @@
 // A set of general operators
 
 #include"Header.h"
+#include"define.h"
 
 class Customer_Solomon {
 public:
@@ -27,5 +28,6 @@ public:
 double EuclideanDistance(const double x1, const double y1, const double x2, const double y2);
 // Set precision.
 double setPrecision(const double data, const int numFloat);
-
+// Read Solomon instance.
+Instance_Solomon readSolomonInstance(const string &input);
 

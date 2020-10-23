@@ -44,11 +44,22 @@ void printSeparator(const int &numOfEnter, const int &vertical, const int &horiz
 void print(const bool allowPrint, ostream &os, const string &str);
 
 template<typename T>
-void print(const T &cont, const int &num) {
-	int i = 0;
-	for (const auto &elem : cont) {
-		cout << elem << '\t';
-		if (++i % num == 0) { cout << endl; }
+void print2(ostream &os, const T &cont, const char character) {
+	for (const auto &first : cont) {
+		for (const auto &second : first) {
+			os << second << character;
+		}
+		os << endl;
+	}
+}
+
+
+template<typename T>
+void read2(istream &ins, const T &cont) {
+	for (int i = 0; i < cont.size(); ++i) {
+		for (int j = 0; j < cont[i].size(); ++j) {
+			ins >> cont[i][j];
+		}
 	}
 }
 

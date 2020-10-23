@@ -24,7 +24,7 @@
 #include<algorithm>
 #include<functional>
 
-
+using std::istream;
 using std::ostream;
 using std::cout;
 using std::ofstream;

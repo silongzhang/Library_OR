@@ -14,6 +14,7 @@ Important Assumptions:
 
 #include"Header.h"
 #include"define.h"
+#include"general.h"
 
 constexpr auto Max_Num_Vertex = 128;
 
@@ -23,6 +24,7 @@ enum class ResourceType { Quantity, Distance, Time };
 
 class Data_Input_ESPPRC {
 public:
+	string name;
 	// The number of vertices, including the depot.
 	int NumVertices;
 	vector<vector<QuantityType>> Quantity;
@@ -52,6 +54,8 @@ public:
 	int maxNumRoutesReturned;
 	// Whether printing is allowed.
 	bool allowPrintLog;
+
+	void clearAndResize();
 };
 
 class Data_Output_ESPPRC {
@@ -223,4 +227,10 @@ long long numOfLabels(const vector<unordered_map<bitset<Max_Num_Vertex>, list<La
 // Dynamic programming algorithm for ESPPRC.
 multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> DPAlgorithmESPPRC(const Data_Input_ESPPRC &data, Data_Auxiliary_ESPPRC &auxiliary,
 	Data_Output_ESPPRC &output);
+void readDataSolomonESPPRC(const Instance_Solomon &inst, Data_Input_ESPPRC &data, const double coefDist, const vector<double> &prize,
+	const int precision);
+// Write input data to CSV file.
+void writeToFile(const Data_Input_ESPPRC &data, const string &strOutput);
+// Read input data from file.
+void readFromFile(Data_Input_ESPPRC &data, const string &strInput);
 

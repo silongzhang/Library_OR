@@ -758,3 +758,157 @@ multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> DPAlgorithmESPPRC(const Data
 	return result;
 }
 
+
+void Data_Input_ESPPRC::clearAndResize() {
+	try {
+		Quantity.clear(); Quantity.resize(NumVertices);
+		QuantityWindow.clear(); QuantityWindow.resize(NumVertices);
+		Distance.clear(); Distance.resize(NumVertices);
+		DistanceWindow.clear(); DistanceWindow.resize(NumVertices);
+		Time.clear(); Time.resize(NumVertices);
+		TimeWindow.clear(); TimeWindow.resize(NumVertices);
+		RealCost.clear(); RealCost.resize(NumVertices);
+		ReducedCost.clear(); ReducedCost.resize(NumVertices);
+		UnreachableForever.clear(); UnreachableForever.resize(NumVertices);
+		ExistingArcs.clear(); ExistingArcs.resize(NumVertices);
+
+		for (int i = 0; i < NumVertices; ++i) {
+			Quantity[i].resize(NumVertices);
+			Distance[i].resize(NumVertices);
+			Time[i].resize(NumVertices);
+			RealCost[i].resize(NumVertices);
+			ReducedCost[i].resize(NumVertices);
+			ExistingArcs[i].resize(NumVertices);
+		}
+	}
+	catch (const exception &exc) {
+		printErrorAndExit("Data_Input_ESPPRC::clearAndResize", exc);
+	}
+}
+
+
+// Read data from Solomon instance.
+void readDataSolomonESPPRC(const Instance_Solomon &inst, Data_Input_ESPPRC &data, const double coefDist, const vector<double> &prize,
+	const int precision) {
+	try {
+		data.name = inst.name;
+		data.NumVertices = inst.vertices.size();
+		data.clearAndResize();
+
+		for (int i = 0; i < data.NumVertices; ++i) {
+			data.QuantityWindow[i].first = 0;
+			data.QuantityWindow[i].second = inst.capacity;
+			data.TimeWindow[i].first = inst.vertices[i].readyTime;
+			data.TimeWindow[i].second = inst.vertices[i].dueTime;
+			data.DistanceWindow[i].first = 0;
+			data.DistanceWindow[i].second = data.TimeWindow[0].second * coefDist;
+
+			for (int j = 0; j < data.NumVertices; ++j) {
+				data.Quantity[i][j] = 0.5 * (inst.vertices[i].demand + inst.vertices[j].demand);
+				data.Distance[i][j] = setPrecision(EuclideanDistance(inst.vertices[i].xCoord, inst.vertices[i].yCoord, 
+					inst.vertices[j].xCoord, inst.vertices[j].yCoord), precision);
+				data.Time[i][j] = data.Distance[i][j] + inst.vertices[i].serviceTime;
+				data.RealCost[i][j] = data.Distance[i][j];
+				data.ReducedCost[i][j] = data.RealCost[i][j] - 0.5 * (prize[i] + prize[j]);
+				data.ExistingArcs[i][j] = true;
+			}
+		}
+	}
+	catch (const exception &exc) {
+		printErrorAndExit("readDataESPPRC", exc);
+	}
+}
+
+
+// Write input data to file.
+void writeToFile(const Data_Input_ESPPRC &data, const string &strOutput) {
+	try {
+		ofstream os(strOutput);
+		if (!os) throw exception("Failed file operator.");
+
+		os << "instance" << '\t' << "numVertices" << endl;
+		os << data.name << '\t' << data.NumVertices << endl;
+
+		os << "QuantMin" << '\t' << "QuantMax" << '\t' << "DistMin" << '\t' << "DistMax" << '\t' << "TimeMin" << '\t' << "TimeMax" << endl;
+		for (int i = 0; i < data.NumVertices; ++i) {
+			os << data.QuantityWindow[i].first << '\t' << data.QuantityWindow[i].second << '\t'
+				<< data.DistanceWindow[i].first << '\t' << data.DistanceWindow[i].second << '\t'
+				<< data.TimeWindow[i].first << '\t' << data.TimeWindow[i].second << endl;
+		}
+
+		os << "Quantity" << endl;
+		print2(os, data.Quantity, '\t');
+
+		os << "Distance" << endl;
+		print2(os, data.Distance, '\t');
+
+		os << "Time" << endl;
+		print2(os, data.Time, '\t');
+
+		os << "Real Cost" << endl;
+		print2(os, data.RealCost, '\t');
+
+		os << "Reduced Cost" << endl;
+		print2(os, data.ReducedCost, '\t');
+
+		os << "Arcs" << endl;
+		print2(os, data.ExistingArcs, '\t');
+
+		os.close();
+	}
+	catch (const exception &exc) {
+		printErrorAndExit("writeToFile", exc);
+	}
+}
+
+
+// Read input data from file.
+void readFromFile(Data_Input_ESPPRC &data, const string &strInput) {
+	try {
+		ifstream ins(strInput);
+		if (!ins) throw exception("Failed file operator.");
+
+		string strTemp;
+		getline(ins, strTemp);
+		ins >> data.name >> data.NumVertices;
+		data.clearAndResize();
+
+		getline(ins, strTemp);
+		getline(ins, strTemp);
+		for (int i = 0; i < data.NumVertices; ++i) {
+			ins >> data.QuantityWindow[i].first >> data.QuantityWindow[i].second >> 
+				data.DistanceWindow[i].first >> data.DistanceWindow[i].second >> 
+				data.TimeWindow[i].first >> data.TimeWindow[i].second;
+		}
+
+		getline(ins, strTemp);
+		getline(ins, strTemp);
+		read2(ins, data.Quantity);
+
+		getline(ins, strTemp);
+		getline(ins, strTemp);
+		read2(ins, data.Distance);
+
+		getline(ins, strTemp);
+		getline(ins, strTemp);
+		read2(ins, data.Time);
+
+		getline(ins, strTemp);
+		getline(ins, strTemp);
+		read2(ins, data.RealCost);
+
+		getline(ins, strTemp);
+		getline(ins, strTemp);
+		read2(ins, data.ReducedCost);
+
+		getline(ins, strTemp);
+		getline(ins, strTemp);
+		read2(ins, data.ExistingArcs);
+
+		ins.close();
+	}
+	catch (const exception &exc) {
+		printErrorAndExit("readFromFile", exc);
+	}
+}
+
