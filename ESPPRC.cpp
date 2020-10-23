@@ -912,3 +912,161 @@ void readFromFile(Data_Input_ESPPRC &data, const string &strInput) {
 	}
 }
 
+
+void Data_Input_ESPPRC::preprocess() {
+	try {
+		Consumption_ESPPRC csp(0, 0, TimeWindow[0].first);
+		if (!csp.feasible(*this, 0)) throw exception("No feasible routes.");
+
+		for (int i = 0; i < NumVertices; ++i) {
+			UnreachableForever[i].set();
+			ExistingArcs[i] = vector<bool>(NumVertices, false);
+		}
+
+		for (int i = 1; i < NumVertices; ++i) {
+			Consumption_ESPPRC one(csp);
+			one.extend(*this, 0, i);
+			if (one.feasible(*this, i)) {
+				Consumption_ESPPRC two(one);
+
+				one.extend(*this, i, 0);
+				if (one.feasible(*this, 0)) {
+					UnreachableForever[0].set(i, false);
+					UnreachableForever[i].set(0, false);
+					ExistingArcs[0][i] = ExistingArcs[i][0] = true;
+
+					for (int j = 1; j < NumVertices; ++j) {
+						if (i != j) {
+							two.extend(*this, i, j);
+							if (two.feasible(*this, j)) {
+								two.extend(*this, j, 0);
+								if (two.feasible(*this, 0)) {
+									UnreachableForever[i].set(j, false);
+									ExistingArcs[i][j] = true;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		numArcs = 0;
+		numNegArcs = 0;
+		for (int i = 0; i < NumVertices; ++i) {
+			for (int j = 0; j < NumVertices; ++j) {
+				if (ExistingArcs[i][j]) {
+					++numArcs;
+					if (lessThanReal(ReducedCost[i][j], 0, PPM)) {
+						++numNegArcs;
+					}
+				}
+			}
+		}
+		density = double(numArcs) / ((NumVertices - 1) * NumVertices / 2);
+		percentNegArcs = double(numNegArcs) / numArcs;
+	}
+	catch (const exception &exc) {
+		printErrorAndExit("Data_Input_ESPPRC::preprocess", exc);
+	}
+}
+
+
+// Output.
+void Consumption_ESPPRC::print(Data_Output_ESPPRC &output) const {
+	try {
+		output.osLog << quantity << '\t' << distance << '\t' << departureTime << '\t' << time << '\t';
+	}
+	catch (const exception &exc) {
+		printErrorAndExit("Consumption_ESPPRC::print", exc);
+	}
+}
+
+
+// Output.
+void Cost_ESPPRC::print(Data_Output_ESPPRC &output) const {
+	try {
+		output.osLog << realCost << '\t' << reducedCost << '\t';
+	}
+	catch (const exception &exc) {
+		printErrorAndExit("Cost_ESPPRC::print", exc);
+	}
+}
+
+
+// Output.
+void Label_ESPPRC::print(Data_Output_ESPPRC &output) const {
+	try {
+		output.osLog << endl << "Cost: ";
+		cost.print(output);
+
+		output.osLog << endl << "Consumption: ";
+		consumption.print(output);
+
+		output.osLog << endl << "Route: ";
+		print1(output.osLog, path, '\t');
+
+		output.osLog << endl;
+	}
+	catch (const exception &exc) {
+		printErrorAndExit("Label_ESPPRC::print", exc);
+	}
+}
+
+
+// Output.
+void Data_Auxiliary_ESPPRC::print(Data_Output_ESPPRC &output) const {
+	try {
+		output.osLog << "Number of labels: ";
+		output.osLog << numUnGeneratedLabelsInfeasibility << '\t' << numGeneratedLabels << '\t' << numPrunedLabelsBound << '\t'
+			<< numUnInsertedLabelsDominance << '\t' << numDeletedLabelsDominance << '\t'
+			<< numSavedLabels << '\t' << numCompletedRoutes << endl;
+
+		output.osLog << "Elapsed time: ";
+		output.osLog << timeBoundQuantity << '\t' << timeBoundDistance << '\t' << timeBoundTime << '\t'
+			<< timeBound << '\t' << timeDP << '\t' << timeOverall << endl;
+	}
+	catch (const exception &exc) {
+		printErrorAndExit("Data_Auxiliary_ESPPRC::print", exc);
+	}
+}
+
+
+// Output.
+void Data_Input_ESPPRC::print(Data_Output_ESPPRC &output) const {
+	try {
+		output.osLog << name << '\t' << NumVertices << '\t' << numArcs << '\t' << density << '\t'
+			<< numNegArcs << '\t' << percentNegArcs << endl;
+		output.osLog << incrementQuantLB << '\t' << sizeQuantLB << '\t' << incrementDistLB << '\t' << sizeDistLB << '\t' 
+			<< incrementTimeLB << '\t' << sizeTimeLB << endl;
+		output.osLog << maxReducedCost << '\t' << maxNumRoutesReturned << endl;
+	}
+	catch (const exception &exc) {
+		printErrorAndExit("Data_Input_ESPPRC::print", exc);
+	}
+}
+
+
+// Output.
+void printResultsDPAlgorithmESPPRC(const Data_Input_ESPPRC &data, const Data_Auxiliary_ESPPRC &auxiliary, Data_Output_ESPPRC &output, 
+	const multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> &result) {
+	try {
+		if (data.allowPrintLog) {
+			output.osLog << "Input data information: " << endl;
+			data.print(output);
+
+			output.osLog << endl << "Running information: " << endl;
+			auxiliary.print(output);
+
+			output.osLog << endl << "Number of solutions: " << result.size() << endl;
+			for (const auto &elem : result) {
+				elem.print(output);
+			}
+		}
+	}
+	catch (const exception &exc) {
+		printErrorAndExit("printResultsDPAlgorithmESPPRC", exc);
+	}
+}
+
+

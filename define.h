@@ -43,6 +43,15 @@ void printSeparator(const int &numOfEnter, const int &vertical, const int &horiz
 	const char &character, ofstream &os);
 void print(const bool allowPrint, ostream &os, const string &str);
 
+
+template<typename T>
+void print1(ostream &os, const T &cont, const char character) {
+	for (const auto &elem : cont) {
+		os << elem << character;
+	}
+}
+
+
 template<typename T>
 void print2(ostream &os, const T &cont, const char character) {
 	for (const auto &first : cont) {

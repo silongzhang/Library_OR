@@ -41,6 +41,10 @@ public:
 	// ExistingArcs[i][j] = false if and only if: (1) i = j or (2) UnreachableForever[i].test(j) = true 
 	// or (3) arc (i,j) dose not exist in the network.
 	vector<vector<bool>> ExistingArcs;
+	int numArcs;
+	double density;
+	int numNegArcs;
+	double percentNegArcs;
 	// Parameters.
 	QuantityType incrementQuantLB;
 	int sizeQuantLB;
@@ -56,6 +60,9 @@ public:
 	bool allowPrintLog;
 
 	void clearAndResize();
+	void preprocess();
+	// Output.
+	void print(Data_Output_ESPPRC &output) const;
 };
 
 class Data_Output_ESPPRC {
@@ -100,6 +107,8 @@ public:
 	void resetTime() {
 		timeBoundQuantity = timeBoundDistance = timeBoundTime = timeBound = timeDP = timeOverall = 0;
 	}
+	// Output.
+	void print(Data_Output_ESPPRC &output) const;
 };
 
 class Consumption_ESPPRC {
@@ -128,6 +137,8 @@ public:
 	void extend(const Data_Input_ESPPRC &data, const int i, const int j);
 	// check whether this object is feasible at vertex i (resource constraints are all satisfied).
 	bool feasible(const Data_Input_ESPPRC &data, const int i) const;
+	// Output.
+	void print(Data_Output_ESPPRC &output) const;
 };
 
 class Cost_ESPPRC {
@@ -145,6 +156,8 @@ public:
 	void reset() { realCost = 0; reducedCost = 0; }
 	// Renew this object after extending from vertex i to vertex j.
 	void extend(const Data_Input_ESPPRC &data, const int i, const int j);
+	// Output.
+	void print(Data_Output_ESPPRC &output) const;
 };
 
 class Label_ESPPRC {
@@ -183,6 +196,8 @@ public:
 	void extend(const Data_Input_ESPPRC &data, const int j);
 	// Check whether this label is a feasible solution.
 	bool feasible(const Data_Input_ESPPRC &data) const;
+	// Output.
+	void print(Data_Output_ESPPRC &output) const;
 };
 
 class Label_ESPPRC_Sort_Criterion {
@@ -233,4 +248,7 @@ void readDataSolomonESPPRC(const Instance_Solomon &inst, Data_Input_ESPPRC &data
 void writeToFile(const Data_Input_ESPPRC &data, const string &strOutput);
 // Read input data from file.
 void readFromFile(Data_Input_ESPPRC &data, const string &strInput);
+// Output.
+void printResultsDPAlgorithmESPPRC(const Data_Input_ESPPRC &data, const Data_Auxiliary_ESPPRC &auxiliary, Data_Output_ESPPRC &output,
+	const multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> &result);
 
