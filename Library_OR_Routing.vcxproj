@@ -13,11 +13,13 @@
   <ItemGroup>
     <ClCompile Include="define.cpp" />
     <ClCompile Include="ESPPRC.cpp" />
+    <ClCompile Include="general.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="define.h" />
     <ClInclude Include="ESPPRC.h" />
+    <ClInclude Include="general.h" />
     <ClInclude Include="Header.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
