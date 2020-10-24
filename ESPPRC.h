@@ -59,8 +59,8 @@ public:
 	// Whether printing is allowed.
 	bool allowPrintLog;
 	// Whether dominance rule is adopted.
-	bool dominateInserted;
 	bool dominateUninserted;
+	bool dominateInserted;
 	// Whether lower bounds corresponding to resource X should be applied.
 	// applyLB[0], applyLB[1], applyLB[2] correspond to Quantity, Distance, Time respectively.
 	vector<bool> applyLB;
@@ -251,4 +251,18 @@ void readFromFile(Data_Input_ESPPRC &data, const string &strInput);
 // Output.
 void printResultsDPAlgorithmESPPRC(const Data_Input_ESPPRC &data, const Data_Auxiliary_ESPPRC &auxiliary, ostream &output,
 	const multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> &result);
+
+class ParameterTestDPAlgorithmESPPRC {
+public:
+	string strInputSolomon;
+	string strInstance;
+	string strOutput;
+	double prize;
+	bool dominateUninserted;
+	bool dominateInserted;
+};
+
+// Test.
+double testDPAlgorithmESPPRC(const ParameterTestDPAlgorithmESPPRC &parameter, ostream &osAll);
+
 

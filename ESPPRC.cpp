@@ -1077,6 +1077,7 @@ void Data_Input_ESPPRC::print(ostream &output) const {
 			<< incrementTimeLB << '\t' << sizeTimeLB << endl;
 		output << maxReducedCost << '\t' << maxNumRoutesReturned << endl;
 		output << applyLB[0] << '\t' << applyLB[1] << '\t' << applyLB[2] << endl;
+		output << dominateUninserted << '\t' << dominateInserted << endl;
 	}
 	catch (const exception &exc) {
 		printErrorAndExit("Data_Input_ESPPRC::print", exc);
@@ -1104,6 +1105,63 @@ void printResultsDPAlgorithmESPPRC(const Data_Input_ESPPRC &data, const Data_Aux
 	catch (const exception &exc) {
 		printErrorAndExit("printResultsDPAlgorithmESPPRC", exc);
 	}
+}
+
+
+// Test.
+double testDPAlgorithmESPPRC(const ParameterTestDPAlgorithmESPPRC &parameter, ostream &osAll) {
+	start = clock();
+	last = start;
+	try {
+		Instance_Solomon inst = readSolomonInstance(parameter.strInputSolomon);
+
+		Data_Input_ESPPRC data;
+		data.dominateUninserted = parameter.dominateUninserted;
+		data.dominateInserted = parameter.dominateInserted;
+		vector<double> prize(inst.vertices.size(), parameter.prize);
+		prize[0] = 0;
+		int precision = 1;
+
+		double coefDist = 0.2;		
+		data.sizeQuantLB = 30;
+		data.sizeDistLB = 30;
+		data.sizeTimeLB = 30;
+		data.maxReducedCost = 0;
+		data.maxNumRoutesReturned = 10;
+		data.allowPrintLog = true;
+		data.applyLB = { true,true,true };
+
+		readDataSolomonESPPRC(inst, data, coefDist, prize, precision);
+
+		writeToFile(data, parameter.strInstance);
+		readFromFile(data, parameter.strInstance);
+
+		data.incrementQuantLB = floor((data.QuantityWindow[0].second - data.QuantityWindow[0].first) / data.sizeQuantLB);
+		data.incrementDistLB = floor((data.DistanceWindow[0].second - data.DistanceWindow[0].first) / data.sizeDistLB);
+		data.incrementTimeLB = floor((data.TimeWindow[0].second - data.TimeWindow[0].first) / data.sizeTimeLB);
+
+		ofstream osOne(parameter.strOutput);
+		if (!osOne) throw exception("Failed file operator.");
+
+		// Algorithm.
+		data.preprocess();
+		Data_Auxiliary_ESPPRC auxiliary;
+		auto result = DPAlgorithmESPPRC(data, auxiliary, osOne);
+		printResultsDPAlgorithmESPPRC(data, auxiliary, osOne, result);
+		osOne.close();
+
+		// Output.
+		osAll << data.name << '\t' << parameter.prize << '\t' << data.dominateUninserted << '\t' << data.dominateInserted << '\t'
+			<< data.NumVertices << '\t' << data.numArcs << '\t' << data.density << '\t'
+			<< data.numNegArcs << '\t' << data.percentNegArcs << '\t' << auxiliary.timeBound << '\t' << auxiliary.timeDP << '\t'
+			<< auxiliary.numUnGeneratedLabelsInfeasibility << '\t' << auxiliary.numGeneratedLabels << '\t'
+			<< auxiliary.numPrunedLabelsBound << '\t' << auxiliary.numUnInsertedLabelsDominance << '\t'
+			<< auxiliary.numDeletedLabelsDominance << '\t' << auxiliary.numSavedLabels << '\t' << auxiliary.numCompletedRoutes << endl;
+	}
+	catch (const exception exc) {
+		printErrorAndExit("testDPAlgorithmESPPRC", exc);
+	}
+	return runTime(start);
 }
 
 

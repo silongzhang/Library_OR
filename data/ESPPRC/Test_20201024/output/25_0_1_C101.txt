@@ -1,0 +1,18 @@
+Elapsed time: 0.1	The procedure titled DPAlgorithmESPPRC is running.
+
+Elapsed time: 1.961	Lower bounds computing is finished.
+
+Elapsed time: 1.961	DP procedure is running.
+
+Elapsed time: 1.973	Iteration: 1	Upper bound: -5
+UnGenerated: 5691	Generated: 4509	Completed: 100
+BoundPruned: 523	UnInsertedDominance: 0	DeletedDominance: 232
+
+Elapsed time: 2.369	Iteration: 2	Upper bound: -27.8
+UnGenerated: 269449	Generated: 98594	Completed: 3643
+BoundPruned: 48792	UnInsertedDominance: 0	DeletedDominance: 7570
+
+Elapsed time: 21.964	Iteration: 3	Upper bound: -49.9
+UnGenerated: 2994093	Generated: 871984	Completed: 38277
+BoundPruned: 605218	UnInsertedDominance: 0	DeletedDominance: 58028
+

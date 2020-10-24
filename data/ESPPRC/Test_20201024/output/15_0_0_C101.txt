@@ -1,0 +1,114 @@
+Elapsed time: 0.128	The procedure titled DPAlgorithmESPPRC is running.
+
+Elapsed time: 1.966	Lower bounds computing is finished.
+
+Elapsed time: 1.966	DP procedure is running.
+
+Elapsed time: 1.976	Iteration: 1	Upper bound: 5
+UnGenerated: 5691	Generated: 4509	Completed: 100
+BoundPruned: 1475	UnInsertedDominance: 0	DeletedDominance: 0
+
+Elapsed time: 2.078	Iteration: 2	Upper bound: -7.8
+UnGenerated: 209486	Generated: 86948	Completed: 2934
+BoundPruned: 68273	UnInsertedDominance: 0	DeletedDominance: 0
+
+Elapsed time: 2.535	Iteration: 3	Upper bound: -19.9
+UnGenerated: 1095099	Generated: 494842	Completed: 15741
+BoundPruned: 430578	UnInsertedDominance: 0	DeletedDominance: 0
+
+Elapsed time: 3.4	Iteration: 4	Upper bound: -29.4
+UnGenerated: 3533735	Generated: 1367188	Completed: 48523
+BoundPruned: 1218751	UnInsertedDominance: 0	DeletedDominance: 0
+
+Elapsed time: 4.334	Iteration: 5	Upper bound: -42.8
+UnGenerated: 7670809	Generated: 2420605	Completed: 99914
+BoundPruned: 2181050	UnInsertedDominance: 0	DeletedDominance: 0
+
+Elapsed time: 4.821	Iteration: 6	Upper bound: -53.8
+UnGenerated: 11074242	Generated: 3029599	Completed: 139641
+BoundPruned: 2725878	UnInsertedDominance: 0	DeletedDominance: 0
+
+Elapsed time: 5.012	Iteration: 7	Upper bound: -66.8
+UnGenerated: 13284542	Generated: 3287638	Completed: 164080
+BoundPruned: 2949941	UnInsertedDominance: 0	DeletedDominance: 0
+
+Elapsed time: 5.062	Iteration: 8	Upper bound: -79.5
+UnGenerated: 14179322	Generated: 3356095	Completed: 173617
+BoundPruned: 3006096	UnInsertedDominance: 0	DeletedDominance: 0
+
+Elapsed time: 5.072	Iteration: 9	Upper bound: -92.8
+UnGenerated: 14445938	Generated: 3368744	Completed: 176382
+BoundPruned: 3015379	UnInsertedDominance: 0	DeletedDominance: 0
+
+Elapsed time: 5.074	Iteration: 10	Upper bound: -103.5
+UnGenerated: 14504814	Generated: 3370569	Completed: 176983
+BoundPruned: 3016474	UnInsertedDominance: 0	DeletedDominance: 0
+
+Elapsed time: 5.074	Iteration: 11	Upper bound: -114.1
+UnGenerated: 14517588	Generated: 3370824	Completed: 177112
+BoundPruned: 3016575	UnInsertedDominance: 0	DeletedDominance: 0
+
+Elapsed time: 5.074	Iteration: 12	Upper bound: -119.8
+UnGenerated: 14520087	Generated: 3370850	Completed: 177137
+BoundPruned: 3016575	UnInsertedDominance: 0	DeletedDominance: 0
+
+Elapsed time: 5.074	Iteration: 13	Upper bound: -129.9
+UnGenerated: 14520187	Generated: 3370851	Completed: 177138
+BoundPruned: 3016575	UnInsertedDominance: 0	DeletedDominance: 0
+
+Saved: 354276
+
+Elapsed time: 5.139	The procedure titled DPAlgorithmESPPRC is finished.
+
+Input data information: 
+C101	101	4509	0.446436	487	0.108006
+6	30	8	30	41	30
+0	10
+1	1	1
+0	0
+
+Running information: 
+Number of labels: 14520187	3370851	3016575	0	0	354276	177138
+Elapsed time: 0.571	1.043	0.199	1.823	3.142	4.965
+
+Number of solutions: 10
+
+Cost: 65.1	-129.9	
+Consumption: 160	65.1	0	1235.1	
+Route: 0	43	42	41	40	44	46	45	48	51	50	52	49	47	0	
+
+Cost: 60.2	-119.8	
+Consumption: 180	60.2	0	1140.2	
+Route: 0	5	3	7	8	10	11	9	6	4	2	1	75	0	
+
+Cost: 62.2	-117.8	
+Consumption: 130	62.2	0	1205.1	
+Route: 0	43	42	41	40	44	45	48	51	50	52	49	47	0	
+
+Cost: 62.6	-117.4	
+Consumption: 150	62.6	0	1201.1	
+Route: 0	43	42	41	40	44	46	45	48	51	50	49	47	0	
+
+Cost: 62.7	-117.3	
+Consumption: 150	62.7	0	1205.1	
+Route: 0	43	42	41	40	44	46	45	48	50	52	49	47	0	
+
+Cost: 63.8	-116.2	
+Consumption: 150	63.8	0	1207.5	
+Route: 0	43	42	41	44	46	45	48	51	50	52	49	47	0	
+
+Cost: 63.8	-116.2	
+Consumption: 140	63.8	0	1207.5	
+Route: 0	43	41	40	44	46	45	48	51	50	52	49	47	0	
+
+Cost: 64	-116	
+Consumption: 150	64	0	1207.5	
+Route: 0	43	42	40	44	46	45	48	51	50	52	49	47	0	
+
+Cost: 64	-116	
+Consumption: 150	64	0	1205.1	
+Route: 0	43	42	41	40	44	46	48	51	50	52	49	47	0	
+
+Cost: 64.3	-115.7	
+Consumption: 150	64.3	0	1144.3	
+Route: 0	43	42	41	40	44	46	45	48	51	50	52	49	0	

@@ -6,57 +6,27 @@ extern clock_t start;
 extern clock_t last;
 
 int main(int argc, char** argv) {
-	start = clock();
-	last = start;
-
 	string folderSolomon = "data//solomon instances//solomon_100//";
+	string folderInstance = "data//ESPPRC//Test_20201024//input//";
+	string folderOutput = "data//ESPPRC//Test_20201024//output//";
+
+	vector<double> prize = { 10,15,20,25 };
+	vector<pair<bool, bool>> dominance = { { false,false },{ false,true },{ true,false },{ true,true } };
+	ParameterTestDPAlgorithmESPPRC parameter;
+
 	string fileSolomon = "C101.txt";
-	string fileInputSolomon = folderSolomon + fileSolomon;
-	Instance_Solomon inst = readSolomonInstance(fileInputSolomon);
-
-	double coefDist = 0.2;
-	double prz = 25;
-	vector<double> prize(inst.vertices.size(), prz);
-	prize[0] = 0;
-	int precision = 1;
-
-	// Parameters.
-	Data_Input_ESPPRC data;
-	data.sizeQuantLB = 30;
-	data.sizeDistLB = 30;
-	data.sizeTimeLB = 30;
-	data.maxReducedCost = 0;
-	data.maxNumRoutesReturned = 10;
-	data.allowPrintLog = true;
-	data.dominateInserted = false;
-	data.dominateUninserted = false;
-	data.applyLB = { true,true,true };
-
-	// File operator.
-	string instanceName(fileSolomon.begin(), fileSolomon.end() - string(".txt").length());
-
-	string folderInputESPPRC = "data//ESPPRC//input//";
-	string fileInputESPPRC = folderInputESPPRC + instanceName + ".txt";
-
-	string folderOutputESPPRC = "data//ESPPRC//output//";
-	string fileOutputESPPRC = folderOutputESPPRC + instanceName + ".txt";
-	
-	readDataSolomonESPPRC(inst, data, coefDist, prize, precision);
-	
-	writeToFile(data, fileInputESPPRC);
-
-	readFromFile(data, fileInputESPPRC);
-
-	data.incrementQuantLB = floor((data.QuantityWindow[0].second - data.QuantityWindow[0].first) / data.sizeQuantLB);
-	data.incrementDistLB = floor((data.DistanceWindow[0].second - data.DistanceWindow[0].first) / data.sizeDistLB);
-	data.incrementTimeLB = floor((data.TimeWindow[0].second - data.TimeWindow[0].first) / data.sizeTimeLB);
-
-	// Algorithm.
-	data.preprocess();
-	Data_Auxiliary_ESPPRC auxiliary;
-	auto result = DPAlgorithmESPPRC(data, auxiliary, cout);
-	printResultsDPAlgorithmESPPRC(data, auxiliary, cout, result);
-
+	for (const auto &prz : prize) {
+		for (const auto &dmn : dominance) {
+			string file = numToStr(prz) + "_" + numToStr(dmn.first) + "_" + numToStr(dmn.second) + "_" + fileSolomon;
+			parameter.strInputSolomon = folderSolomon + fileSolomon;
+			parameter.strInstance = folderInstance + file;
+			parameter.strOutput = folderOutput + file;
+			parameter.prize = prz;
+			parameter.dominateUninserted = dmn.first;
+			parameter.dominateInserted = dmn.second;
+			testDPAlgorithmESPPRC(parameter, cout);
+		}
+	}
 	return 0;
 }
 
