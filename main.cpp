@@ -28,6 +28,8 @@ int main(int argc, char** argv) {
 	data.maxReducedCost = 0;
 	data.maxNumRoutesReturned = 10;
 	data.allowPrintLog = true;
+	data.dominateInserted = false;
+	data.dominateUninserted = false;
 	data.applyLB = { true,true,true };
 
 	// File operator.

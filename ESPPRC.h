@@ -58,6 +58,9 @@ public:
 	int maxNumRoutesReturned;
 	// Whether printing is allowed.
 	bool allowPrintLog;
+	// Whether dominance rule is adopted.
+	bool dominateInserted;
+	bool dominateUninserted;
 	// Whether lower bounds corresponding to resource X should be applied.
 	// applyLB[0], applyLB[1], applyLB[2] correspond to Quantity, Distance, Time respectively.
 	vector<bool> applyLB;

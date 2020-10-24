@@ -701,16 +701,19 @@ multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> DPAlgorithmESPPRC(const Data
 							else if (greaterThanReal(lbOfALabelInDPAlgorithmESPPRC(data, auxiliary, childLabel), ub, PPM)) {
 								++auxiliary.numPrunedLabelsBound;
 							}
-							else if (labelIsDominated(auxiliary.pastIU[j], childLabel) ||
+							else if (data.dominateUninserted && 
+								(labelIsDominated(auxiliary.pastIU[j], childLabel) ||
 								labelIsDominated(auxiliary.currentIU[j], childLabel) ||
-								labelIsDominated(auxiliary.nextIU[j], childLabel)) {
+								labelIsDominated(auxiliary.nextIU[j], childLabel))) {
 								++auxiliary.numUnInsertedLabelsDominance;
 							}
 							else {
-								auxiliary.numDeletedLabelsDominance += discardAccordingToDominanceRule(auxiliary.pastIU[j], childLabel) + 
-									discardAccordingToDominanceRule(auxiliary.currentIU[j], childLabel) + 
-									discardAccordingToDominanceRule(auxiliary.nextIU[j], childLabel);
-
+								if (data.dominateInserted) {
+									auxiliary.numDeletedLabelsDominance += discardAccordingToDominanceRule(auxiliary.pastIU[j], childLabel) +
+										discardAccordingToDominanceRule(auxiliary.currentIU[j], childLabel) +
+										discardAccordingToDominanceRule(auxiliary.nextIU[j], childLabel);
+								}
+								
 								insertLabel(auxiliary.nextIU[j], childLabel);
 							}
 						}
