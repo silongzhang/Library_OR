@@ -3,6 +3,7 @@
 // A header file 
 
 #include <ilcplex/ilocplex.h>
+#include<io.h>
 #include<iostream>
 #include<iomanip>
 #include<fstream>

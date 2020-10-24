@@ -53,3 +53,28 @@ Instance_Solomon readSolomonInstance(const string &input) {
 	return result;
 }
 
+
+// Get the paths and names of all files in a folder.
+void getFiles(const string &folder, vector<string> &paths, vector<string> &names) {
+	//文件句柄  
+	intptr_t hFile = 0;
+	//文件信息  
+	struct _finddata_t fileinfo;
+	string p;
+	if ((hFile = _findfirst(p.assign(folder).append("\\*").c_str(), &fileinfo)) != -1) {
+		do {
+			//若是目录，迭代之；否则，加入列表  
+			if ((fileinfo.attrib &  _A_SUBDIR)) {
+				if (strcmp(fileinfo.name, ".") != 0 && strcmp(fileinfo.name, "..") != 0)
+					getFiles(p.assign(folder).append("\\").append(fileinfo.name), paths, names);
+			}
+			else {
+				paths.push_back(folder + "\\" + fileinfo.name);
+				names.push_back(fileinfo.name);
+			}
+		} while (_findnext(hFile, &fileinfo) == 0);
+		_findclose(hFile);
+	}
+}
+
+

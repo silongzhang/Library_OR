@@ -12,19 +12,22 @@ int main(int argc, char** argv) {
 
 	vector<double> prize = { 10,15,20,25 };
 	vector<pair<bool, bool>> dominance = { { false,false },{ false,true },{ true,false },{ true,true } };
-	ParameterTestDPAlgorithmESPPRC parameter;
+	vector<string> names;
+	getFiles(folderSolomon, vector<string>(), names);
 
-	string fileSolomon = "C101.txt";
-	for (const auto &prz : prize) {
-		for (const auto &dmn : dominance) {
-			string file = numToStr(prz) + "_" + numToStr(dmn.first) + "_" + numToStr(dmn.second) + "_" + fileSolomon;
-			parameter.strInputSolomon = folderSolomon + fileSolomon;
-			parameter.strInstance = folderInstance + file;
-			parameter.strOutput = folderOutput + file;
-			parameter.prize = prz;
-			parameter.dominateUninserted = dmn.first;
-			parameter.dominateInserted = dmn.second;
-			testDPAlgorithmESPPRC(parameter, cout);
+	ParameterTestDPAlgorithmESPPRC parameter;
+	for (const auto &fileSolomon : names) {
+		for (const auto &prz : prize) {
+			for (const auto &dmn : dominance) {
+				string file = numToStr(prz) + "_" + numToStr(dmn.first) + "_" + numToStr(dmn.second) + "_" + fileSolomon;
+				parameter.strInputSolomon = folderSolomon + fileSolomon;
+				parameter.strInstance = folderInstance + file;
+				parameter.strOutput = folderOutput + file;
+				parameter.prize = prz;
+				parameter.dominateUninserted = dmn.first;
+				parameter.dominateInserted = dmn.second;
+				testDPAlgorithmESPPRC(parameter, cout);
+			}
 		}
 	}
 	return 0;

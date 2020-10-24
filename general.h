@@ -30,4 +30,6 @@ double EuclideanDistance(const double x1, const double y1, const double x2, cons
 double setPrecision(const double data, const int numFloat);
 // Read Solomon instance.
 Instance_Solomon readSolomonInstance(const string &input);
+// Get the paths and names of all files in a folder.
+void getFiles(const string &folder, vector<string> &paths, vector<string> &names);
 
