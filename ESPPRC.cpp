@@ -140,10 +140,10 @@ void Label_ESPPRC::extend(const Data_Input_ESPPRC &data, const int j) {
 		if (unreachable.test(j)) throw exception("The vertex is unreachable.");
 		if (!data.ExistingArcs[tail][j]) throw exception("The arc dose not exist in the network.");
 
-		path.push_back(j);
-		tail = j;
 		consumption.extend(data, tail, j);
 		cost.extend(data, tail, j);
+		path.push_back(j);
+		tail = j;
 
 		unreachable.set(j, true);
 		renewUnreachable(data);
@@ -288,15 +288,18 @@ void initiateForLbBasedOnOneResourceGivenAmount(const ResourceType type, const D
 	try {
 		if (type == ResourceType::Quantity) {
 			*result = &auxiliary.LBQI[index][origin];
-			csp = Consumption_ESPPRC(data.QuantityWindow[0].second - data.incrementQuantLB * (index + 1), 0, 0);
+			QuantityType value = max(data.QuantityWindow[origin].first, data.QuantityWindow[0].second - data.incrementQuantLB * (index + 1));
+			csp = Consumption_ESPPRC(value, data.DistanceWindow[origin].first, data.TimeWindow[origin].first);
 		}
 		else if (type == ResourceType::Distance) {
 			*result = &auxiliary.LBDI[index][origin];
-			csp = Consumption_ESPPRC(0, data.DistanceWindow[0].second - data.incrementDistLB * (index + 1), 0);
+			DistanceType value = max(data.DistanceWindow[origin].first, data.DistanceWindow[0].second - data.incrementDistLB * (index + 1));
+			csp = Consumption_ESPPRC(data.QuantityWindow[origin].first, value, data.TimeWindow[origin].first);
 		}
 		else if (type == ResourceType::Time) {
 			*result = &auxiliary.LBTI[index][origin];
-			csp = Consumption_ESPPRC(0, 0, data.TimeWindow[0].second - data.incrementTimeLB * (index + 1));
+			TimeType value = max(data.TimeWindow[origin].first, data.TimeWindow[0].second - data.incrementTimeLB * (index + 1));
+			csp = Consumption_ESPPRC(data.QuantityWindow[origin].first, data.DistanceWindow[origin].first, value);
 		}
 		else throw exception("The input resource type is wrong.");
 	}
@@ -738,8 +741,7 @@ multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> DPAlgorithmESPPRC(const Data
 		}
 
 		auxiliary.numSavedLabels = numOfLabels(auxiliary.pastIU) + auxiliary.numCompletedRoutes;
-		strLog = "**************************************" + '\n';
-		strLog += "Saved: " + numToStr(auxiliary.numSavedLabels) + '\n';
+		strLog = "Saved: " + numToStr(auxiliary.numSavedLabels) + '\n';
 		print(data.allowPrintLog, output, strLog);
 
 		if (result.empty()) throw exception("The result should not be empty.");
@@ -749,6 +751,10 @@ multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> DPAlgorithmESPPRC(const Data
 			lessThanReal(endPos->getReducedCost(), data.maxReducedCost, PPM); ++endPos, ++numRet) {}
 
 		result = multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion>(result.begin(), endPos);
+		for (const auto &elem : result) {
+			if (!elem.feasible(data))
+				throw exception("Feasibility checking failed.");
+		}
 		
 		auxiliary.timeDP = runTime(last);
 		auxiliary.timeOverall = auxiliary.timeBound + auxiliary.timeDP;
@@ -990,7 +996,7 @@ void Data_Input_ESPPRC::preprocess() {
 				}
 			}
 		}
-		density = double(numArcs) / ((NumVertices - 1) * NumVertices / 2);
+		density = double(numArcs) / ((NumVertices - 1) * NumVertices);
 		percentNegArcs = double(numNegArcs) / numArcs;
 	}
 	catch (const exception &exc) {

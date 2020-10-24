@@ -9,27 +9,24 @@ int main(int argc, char** argv) {
 	start = clock();
 	last = start;
 
-	string folderSolomon = "data//solomon instances//solomon-100//";
-	string fileSolomon = "c101.txt";
+	string folderSolomon = "data//solomon instances//solomon_100//";
+	string fileSolomon = "C101.txt";
 	string fileInputSolomon = folderSolomon + fileSolomon;
 	Instance_Solomon inst = readSolomonInstance(fileInputSolomon);
 
 	double coefDist = 0.2;
-	double prz = 30;
+	double prz = 25;
 	vector<double> prize(inst.vertices.size(), prz);
 	prize[0] = 0;
 	int precision = 1;
 
 	// Parameters.
 	Data_Input_ESPPRC data;
-	data.incrementQuantLB = 20;
-	data.sizeQuantLB = 7;
-	data.incrementDistLB = 30;
-	data.sizeDistLB = 6;
-	data.incrementTimeLB = 200;
-	data.sizeTimeLB = 5;
+	data.sizeQuantLB = 30;
+	data.sizeDistLB = 30;
+	data.sizeTimeLB = 30;
 	data.maxReducedCost = 0;
-	data.maxNumRoutesReturned = 100;
+	data.maxNumRoutesReturned = 10;
 	data.allowPrintLog = true;
 	data.applyLB = { true,true,true };
 
@@ -47,6 +44,10 @@ int main(int argc, char** argv) {
 	writeToFile(data, fileInputESPPRC);
 
 	readFromFile(data, fileInputESPPRC);
+
+	data.incrementQuantLB = floor((data.QuantityWindow[0].second - data.QuantityWindow[0].first) / data.sizeQuantLB);
+	data.incrementDistLB = floor((data.DistanceWindow[0].second - data.DistanceWindow[0].first) / data.sizeDistLB);
+	data.incrementTimeLB = floor((data.TimeWindow[0].second - data.TimeWindow[0].first) / data.sizeTimeLB);
 
 	// Algorithm.
 	data.preprocess();
