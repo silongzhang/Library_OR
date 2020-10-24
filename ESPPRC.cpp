@@ -578,7 +578,7 @@ bool initiateForDPAlgorithmESPPRC(const Data_Input_ESPPRC &data, Data_Auxiliary_
 		Cost_ESPPRC cst;
 		cst.reset();
 		Label_ESPPRC initialLable(data, 0, csp, cst);
-		if (initialLable.getUnreachable().test(0) || initialLable.getUnreachable().count() >= data.NumVertices - 1) {
+		if (initialLable.getUnreachable().test(0) || initialLable.getUnreachable().count() >= initialLable.getUnreachable().size() - 1) {
 			return false;
 		}
 
@@ -727,8 +727,7 @@ multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> DPAlgorithmESPPRC(const Data
 				auxiliary.nextIU[i].clear();
 			}
 
-			strLog = "**************************************" + '\n';
-			strLog += "Elapsed time: " + numToStr(runTime(start)) + '\t' + "Iteration: " + numToStr(++iter) + '\t' +
+			strLog = "Elapsed time: " + numToStr(runTime(start)) + '\t' + "Iteration: " + numToStr(++iter) + '\t' +
 				"Upper bound: " + numToStr(ub) + '\n';
 			strLog += "UnGenerated: " + numToStr(auxiliary.numUnGeneratedLabelsInfeasibility) + '\t' +
 				"Generated: " + numToStr(auxiliary.numGeneratedLabels) + '\t' + "Completed: " + numToStr(auxiliary.numCompletedRoutes) + '\n';
@@ -947,7 +946,7 @@ void Data_Input_ESPPRC::preprocess() {
 			Consumption_ESPPRC one(csp);
 			one.extend(*this, 0, i);
 			if (one.feasible(*this, i)) {
-				Consumption_ESPPRC two(one);
+				Consumption_ESPPRC stopAtOne(one);
 
 				one.extend(*this, i, 0);
 				if (one.feasible(*this, 0)) {
@@ -957,6 +956,7 @@ void Data_Input_ESPPRC::preprocess() {
 
 					for (int j = 1; j < NumVertices; ++j) {
 						if (i != j) {
+							Consumption_ESPPRC two(stopAtOne);
 							two.extend(*this, i, j);
 							if (two.feasible(*this, j)) {
 								two.extend(*this, j, 0);

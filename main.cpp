@@ -31,7 +31,7 @@ int main(int argc, char** argv) {
 	data.maxReducedCost = 0;
 	data.maxNumRoutesReturned = 100;
 	data.allowPrintLog = true;
-	vector<bool> applyLB = { true,true,true };
+	data.applyLB = { true,true,true };
 
 	// File operator.
 	string instanceName(fileSolomon.begin(), fileSolomon.end() - string(".txt").length());
