@@ -19,7 +19,6 @@ Important Assumptions:
 constexpr auto Max_Num_Vertex = 128;
 
 class Label_ESPPRC;
-class Data_Output_ESPPRC;
 
 enum class ResourceType { Quantity, Distance, Time };
 
@@ -66,13 +65,7 @@ public:
 	void clearAndResize();
 	void preprocess();
 	// Output.
-	void print(Data_Output_ESPPRC &output) const;
-};
-
-class Data_Output_ESPPRC {
-public:
-	// Output streams.
-	ostream osLog;
+	void print(ostream &output) const;
 };
 
 class Data_Auxiliary_ESPPRC {
@@ -112,7 +105,7 @@ public:
 		timeBoundQuantity = timeBoundDistance = timeBoundTime = timeBound = timeDP = timeOverall = 0;
 	}
 	// Output.
-	void print(Data_Output_ESPPRC &output) const;
+	void print(ostream &output) const;
 };
 
 class Consumption_ESPPRC {
@@ -142,7 +135,7 @@ public:
 	// check whether this object is feasible at vertex i (resource constraints are all satisfied).
 	bool feasible(const Data_Input_ESPPRC &data, const int i) const;
 	// Output.
-	void print(Data_Output_ESPPRC &output) const;
+	void print(ostream &output) const;
 };
 
 class Cost_ESPPRC {
@@ -161,7 +154,7 @@ public:
 	// Renew this object after extending from vertex i to vertex j.
 	void extend(const Data_Input_ESPPRC &data, const int i, const int j);
 	// Output.
-	void print(Data_Output_ESPPRC &output) const;
+	void print(ostream &output) const;
 };
 
 class Label_ESPPRC {
@@ -201,7 +194,7 @@ public:
 	// Check whether this label is a feasible solution.
 	bool feasible(const Data_Input_ESPPRC &data) const;
 	// Output.
-	void print(Data_Output_ESPPRC &output) const;
+	void print(ostream &output) const;
 };
 
 class Label_ESPPRC_Sort_Criterion {
@@ -245,7 +238,7 @@ double lbOfALabelInDPAlgorithmESPPRC(const Data_Input_ESPPRC &data, const Data_A
 long long numOfLabels(const vector<unordered_map<bitset<Max_Num_Vertex>, list<Label_ESPPRC>>> &vecMpBtstLst);
 // Dynamic programming algorithm for ESPPRC.
 multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> DPAlgorithmESPPRC(const Data_Input_ESPPRC &data, Data_Auxiliary_ESPPRC &auxiliary,
-	Data_Output_ESPPRC &output);
+	ostream &output);
 void readDataSolomonESPPRC(const Instance_Solomon &inst, Data_Input_ESPPRC &data, const double coefDist, const vector<double> &prize,
 	const int precision);
 // Write input data to file.
@@ -253,6 +246,6 @@ void writeToFile(const Data_Input_ESPPRC &data, const string &strOutput);
 // Read input data from file.
 void readFromFile(Data_Input_ESPPRC &data, const string &strInput);
 // Output.
-void printResultsDPAlgorithmESPPRC(const Data_Input_ESPPRC &data, const Data_Auxiliary_ESPPRC &auxiliary, Data_Output_ESPPRC &output,
+void printResultsDPAlgorithmESPPRC(const Data_Input_ESPPRC &data, const Data_Auxiliary_ESPPRC &auxiliary, ostream &output,
 	const multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> &result);
 

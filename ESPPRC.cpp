@@ -643,13 +643,13 @@ long long numOfLabels(const vector<unordered_map<bitset<Max_Num_Vertex>, list<La
 
 // Dynamic programming algorithm for ESPPRC.
 multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> DPAlgorithmESPPRC(const Data_Input_ESPPRC &data, Data_Auxiliary_ESPPRC &auxiliary, 
-	Data_Output_ESPPRC &output) {
+	ostream &output) {
 	multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> result;
 	try {
 		if (data.NumVertices > Max_Num_Vertex) throw exception("The value of Max_Num_Vertex should be increased.");
 
 		string strLog = "Elapsed time: " + numToStr(runTime(start)) + '\t' + "The procedure titled DPAlgorithmESPPRC is running." + '\n';
-		print(data.allowPrintLog, output.osLog, strLog);
+		print(data.allowPrintLog, output, strLog);
 
 		// Reset.
 		auxiliary.clearAndResizeIU(data);
@@ -658,16 +658,16 @@ multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> DPAlgorithmESPPRC(const Data
 		// Compute lower bounds for labels.
 		lbBasedOnAllResources(data, auxiliary);
 		strLog = "Elapsed time: " + numToStr(runTime(start)) + '\t' + "Lower bounds computing is finished." + '\n';
-		print(data.allowPrintLog, output.osLog, strLog);
+		print(data.allowPrintLog, output, strLog);
 
 		// DP Algorithm
 		last = clock();
 		strLog = "Elapsed time: " + numToStr(runTime(start)) + '\t' + "DP procedure is running." + '\n';
-		print(data.allowPrintLog, output.osLog, strLog);
+		print(data.allowPrintLog, output, strLog);
 		
 		// Initiate.
 		if (!initiateForDPAlgorithmESPPRC(data, auxiliary)) {
-			print(data.allowPrintLog, output.osLog, "No feasible routes.");
+			print(data.allowPrintLog, output, "No feasible routes.");
 			return result;
 		}
 
@@ -735,13 +735,13 @@ multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> DPAlgorithmESPPRC(const Data
 			strLog += "BoundPruned: " + numToStr(auxiliary.numPrunedLabelsBound) + '\t' +
 				"UnInsertedDominance: " + numToStr(auxiliary.numUnInsertedLabelsDominance) + '\t' +
 				"DeletedDominance: " + numToStr(auxiliary.numDeletedLabelsDominance) + '\n';
-			print(data.allowPrintLog, output.osLog, strLog);
+			print(data.allowPrintLog, output, strLog);
 		}
 
 		auxiliary.numSavedLabels = numOfLabels(auxiliary.pastIU) + auxiliary.numCompletedRoutes;
 		strLog = "**************************************" + '\n';
 		strLog += "Saved: " + numToStr(auxiliary.numSavedLabels) + '\n';
-		print(data.allowPrintLog, output.osLog, strLog);
+		print(data.allowPrintLog, output, strLog);
 
 		if (result.empty()) throw exception("The result should not be empty.");
 		auto endPos = result.begin();
@@ -756,7 +756,7 @@ multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> DPAlgorithmESPPRC(const Data
 		auxiliary.clearAndResizeIU(data);
 
 		strLog = "Elapsed time: " + numToStr(runTime(start)) + '\t' + "The procedure titled DPAlgorithmESPPRC is finished." + '\n';
-		print(data.allowPrintLog, output.osLog, strLog);
+		print(data.allowPrintLog, output, strLog);
 	}
 	catch (const exception &exc) {
 		printErrorAndExit("DPAlgorithmESPPRC", exc);
@@ -1000,9 +1000,9 @@ void Data_Input_ESPPRC::preprocess() {
 
 
 // Output.
-void Consumption_ESPPRC::print(Data_Output_ESPPRC &output) const {
+void Consumption_ESPPRC::print(ostream &output) const {
 	try {
-		output.osLog << quantity << '\t' << distance << '\t' << departureTime << '\t' << time << '\t';
+		output << quantity << '\t' << distance << '\t' << departureTime << '\t' << time << '\t';
 	}
 	catch (const exception &exc) {
 		printErrorAndExit("Consumption_ESPPRC::print", exc);
@@ -1011,9 +1011,9 @@ void Consumption_ESPPRC::print(Data_Output_ESPPRC &output) const {
 
 
 // Output.
-void Cost_ESPPRC::print(Data_Output_ESPPRC &output) const {
+void Cost_ESPPRC::print(ostream &output) const {
 	try {
-		output.osLog << realCost << '\t' << reducedCost << '\t';
+		output << realCost << '\t' << reducedCost << '\t';
 	}
 	catch (const exception &exc) {
 		printErrorAndExit("Cost_ESPPRC::print", exc);
@@ -1022,18 +1022,18 @@ void Cost_ESPPRC::print(Data_Output_ESPPRC &output) const {
 
 
 // Output.
-void Label_ESPPRC::print(Data_Output_ESPPRC &output) const {
+void Label_ESPPRC::print(ostream &output) const {
 	try {
-		output.osLog << endl << "Cost: ";
+		output << endl << "Cost: ";
 		cost.print(output);
 
-		output.osLog << endl << "Consumption: ";
+		output << endl << "Consumption: ";
 		consumption.print(output);
 
-		output.osLog << endl << "Route: ";
-		print1(output.osLog, path, '\t');
+		output << endl << "Route: ";
+		print1(output, path, '\t');
 
-		output.osLog << endl;
+		output << endl;
 	}
 	catch (const exception &exc) {
 		printErrorAndExit("Label_ESPPRC::print", exc);
@@ -1042,15 +1042,15 @@ void Label_ESPPRC::print(Data_Output_ESPPRC &output) const {
 
 
 // Output.
-void Data_Auxiliary_ESPPRC::print(Data_Output_ESPPRC &output) const {
+void Data_Auxiliary_ESPPRC::print(ostream &output) const {
 	try {
-		output.osLog << "Number of labels: ";
-		output.osLog << numUnGeneratedLabelsInfeasibility << '\t' << numGeneratedLabels << '\t' << numPrunedLabelsBound << '\t'
+		output << "Number of labels: ";
+		output << numUnGeneratedLabelsInfeasibility << '\t' << numGeneratedLabels << '\t' << numPrunedLabelsBound << '\t'
 			<< numUnInsertedLabelsDominance << '\t' << numDeletedLabelsDominance << '\t'
 			<< numSavedLabels << '\t' << numCompletedRoutes << endl;
 
-		output.osLog << "Elapsed time: ";
-		output.osLog << timeBoundQuantity << '\t' << timeBoundDistance << '\t' << timeBoundTime << '\t'
+		output << "Elapsed time: ";
+		output << timeBoundQuantity << '\t' << timeBoundDistance << '\t' << timeBoundTime << '\t'
 			<< timeBound << '\t' << timeDP << '\t' << timeOverall << endl;
 	}
 	catch (const exception &exc) {
@@ -1060,14 +1060,14 @@ void Data_Auxiliary_ESPPRC::print(Data_Output_ESPPRC &output) const {
 
 
 // Output.
-void Data_Input_ESPPRC::print(Data_Output_ESPPRC &output) const {
+void Data_Input_ESPPRC::print(ostream &output) const {
 	try {
-		output.osLog << name << '\t' << NumVertices << '\t' << numArcs << '\t' << density << '\t'
+		output << name << '\t' << NumVertices << '\t' << numArcs << '\t' << density << '\t'
 			<< numNegArcs << '\t' << percentNegArcs << endl;
-		output.osLog << incrementQuantLB << '\t' << sizeQuantLB << '\t' << incrementDistLB << '\t' << sizeDistLB << '\t' 
+		output << incrementQuantLB << '\t' << sizeQuantLB << '\t' << incrementDistLB << '\t' << sizeDistLB << '\t' 
 			<< incrementTimeLB << '\t' << sizeTimeLB << endl;
-		output.osLog << maxReducedCost << '\t' << maxNumRoutesReturned << endl;
-		output.osLog << applyLB[0] << '\t' << applyLB[1] << '\t' << applyLB[2] << endl;
+		output << maxReducedCost << '\t' << maxNumRoutesReturned << endl;
+		output << applyLB[0] << '\t' << applyLB[1] << '\t' << applyLB[2] << endl;
 	}
 	catch (const exception &exc) {
 		printErrorAndExit("Data_Input_ESPPRC::print", exc);
@@ -1076,17 +1076,17 @@ void Data_Input_ESPPRC::print(Data_Output_ESPPRC &output) const {
 
 
 // Output.
-void printResultsDPAlgorithmESPPRC(const Data_Input_ESPPRC &data, const Data_Auxiliary_ESPPRC &auxiliary, Data_Output_ESPPRC &output, 
+void printResultsDPAlgorithmESPPRC(const Data_Input_ESPPRC &data, const Data_Auxiliary_ESPPRC &auxiliary, ostream &output, 
 	const multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> &result) {
 	try {
 		if (data.allowPrintLog) {
-			output.osLog << "Input data information: " << endl;
+			output << "Input data information: " << endl;
 			data.print(output);
 
-			output.osLog << endl << "Running information: " << endl;
+			output << endl << "Running information: " << endl;
 			auxiliary.print(output);
 
-			output.osLog << endl << "Number of solutions: " << result.size() << endl;
+			output << endl << "Number of solutions: " << result.size() << endl;
 			for (const auto &elem : result) {
 				elem.print(output);
 			}
