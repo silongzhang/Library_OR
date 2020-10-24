@@ -1,8 +1,0 @@
-﻿instance,numVertices,
-QuantMin,QuantMax,DistMin,DistMax,TimeMin,TimeMax,
-QuantMatrix,
-DistMatrix,
-TimeMatrix,
-RealCostMatrix,
-ReducedCostMatrix,
-ArcMatrix,

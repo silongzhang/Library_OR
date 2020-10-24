@@ -64,7 +64,7 @@ void print2(ostream &os, const T &cont, const char character) {
 
 
 template<typename T>
-void read2(istream &ins, const T &cont) {
+void read2(istream &ins, T &cont) {
 	for (int i = 0; i < cont.size(); ++i) {
 		for (int j = 0; j < cont[i].size(); ++j) {
 			ins >> cont[i][j];

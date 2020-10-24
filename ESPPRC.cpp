@@ -438,6 +438,12 @@ void lbBasedOnOneResourceGivenAmount(const ResourceType type, const Data_Input_E
 		Cost_ESPPRC cst;
 		cst.reset();
 
+		// If lower bounds corresponding to resource X (type) are not applied.
+		if (!data.applyLB[int(type)]) {
+			*result = InfinityNeg;
+			return;
+		}
+
 		Label_ESPPRC initialLable(data, origin, csp, cst);
 		if (initialLable.getUnreachable().test(0) || origin == 0) {
 			*result = InfinityPos;
@@ -903,7 +909,18 @@ void readFromFile(Data_Input_ESPPRC &data, const string &strInput) {
 
 		getline(ins, strTemp);
 		getline(ins, strTemp);
-		read2(ins, data.ExistingArcs);
+		vector<vector<int>> vec2Int(data.NumVertices);
+		for (auto &elem : vec2Int) {
+			elem.resize(data.NumVertices);
+		}
+		read2(ins, vec2Int);
+		for (int i = 0; i < data.NumVertices; ++i) {
+			for (int j = 0; j < data.NumVertices; ++j) {
+				if (vec2Int[i][j] == 0) data.ExistingArcs[i][j] = false;
+				else if (vec2Int[i][j] == 1) data.ExistingArcs[i][j] = true;
+				else throw exception("Failed file operator.");
+			}
+		}
 
 		ins.close();
 	}
@@ -917,6 +934,9 @@ void Data_Input_ESPPRC::preprocess() {
 	try {
 		Consumption_ESPPRC csp(0, 0, TimeWindow[0].first);
 		if (!csp.feasible(*this, 0)) throw exception("No feasible routes.");
+
+		// Save ExistingArcs.
+		vector<vector<bool>> vec2Bool = ExistingArcs;
 
 		for (int i = 0; i < NumVertices; ++i) {
 			UnreachableForever[i].set();
@@ -948,6 +968,13 @@ void Data_Input_ESPPRC::preprocess() {
 						}
 					}
 				}
+			}
+		}
+
+		// Renew ExistingArcs.
+		for (int i = 0; i < NumVertices; ++i) {
+			for (int j = 0; j < NumVertices; ++j) {
+				ExistingArcs[i][j] = ExistingArcs[i][j] && vec2Bool[i][j];
 			}
 		}
 
@@ -1040,6 +1067,7 @@ void Data_Input_ESPPRC::print(Data_Output_ESPPRC &output) const {
 		output.osLog << incrementQuantLB << '\t' << sizeQuantLB << '\t' << incrementDistLB << '\t' << sizeDistLB << '\t' 
 			<< incrementTimeLB << '\t' << sizeTimeLB << endl;
 		output.osLog << maxReducedCost << '\t' << maxNumRoutesReturned << endl;
+		output.osLog << applyLB[0] << '\t' << applyLB[1] << '\t' << applyLB[2] << endl;
 	}
 	catch (const exception &exc) {
 		printErrorAndExit("Data_Input_ESPPRC::print", exc);

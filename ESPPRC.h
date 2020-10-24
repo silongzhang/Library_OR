@@ -19,6 +19,7 @@ Important Assumptions:
 constexpr auto Max_Num_Vertex = 128;
 
 class Label_ESPPRC;
+class Data_Output_ESPPRC;
 
 enum class ResourceType { Quantity, Distance, Time };
 
@@ -58,6 +59,9 @@ public:
 	int maxNumRoutesReturned;
 	// Whether printing is allowed.
 	bool allowPrintLog;
+	// Whether lower bounds corresponding to resource X should be applied.
+	// applyLB[0], applyLB[1], applyLB[2] correspond to Quantity, Distance, Time respectively.
+	vector<bool> applyLB;
 
 	void clearAndResize();
 	void preprocess();
@@ -244,7 +248,7 @@ multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> DPAlgorithmESPPRC(const Data
 	Data_Output_ESPPRC &output);
 void readDataSolomonESPPRC(const Instance_Solomon &inst, Data_Input_ESPPRC &data, const double coefDist, const vector<double> &prize,
 	const int precision);
-// Write input data to CSV file.
+// Write input data to file.
 void writeToFile(const Data_Input_ESPPRC &data, const string &strOutput);
 // Read input data from file.
 void readFromFile(Data_Input_ESPPRC &data, const string &strInput);
