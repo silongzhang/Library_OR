@@ -52,10 +52,17 @@ public:
 	int sizeDistLB;
 	TimeType incrementTimeLB;
 	int sizeTimeLB;
+
+	// Whether at least one optimal solution must be found.
+	bool mustOptimal;
+	// The minimum run time if mustOptimal = false and optimal solutions are not necessarily already found.
+	double minRunTime;
 	// The reduced cost of returned routes cannot exceed this parameter.
 	double maxReducedCost;
 	// The number of returned routes cannot exceed this parameter.
 	int maxNumRoutesReturned;
+	// The maximum number of saved potential labels at each step when calculating the upper bound.
+	int maxNumPotentialEachStep;
 	// Whether printing is allowed.
 	bool allowPrintLog;
 	// Whether dominance rule is adopted.
@@ -78,6 +85,8 @@ public:
 	vector<vector<double>> LBDI;
 	vector<vector<double>> LBTI;
 	vector<vector<vector<vector<double>>>> LBQDTI;
+	// The current upper bound.
+	double ub;
 	// Data structures for saving labels.
 	vector<unordered_map<bitset<Max_Num_Vertex>, list<Label_ESPPRC>>> pastIU;
 	vector<unordered_map<bitset<Max_Num_Vertex>, list<Label_ESPPRC>>> currentIU;
@@ -90,22 +99,26 @@ public:
 	long long numDeletedLabelsDominance;
 	long long numSavedLabels;
 	long long numCompletedRoutes;
+	long long numDiscardPotential;
 	// Time elapsed.
 	double timeBoundQuantity;
 	double timeBoundDistance;
 	double timeBoundTime;
-	double timeBound;
+	double timeLB;
+	double timeUB;
 	double timeDP;
 	double timeOverall;
+	// Whether only save potential labels.
+	bool onlyPotential;
 
 	void clearAndResizeLB(const Data_Input_ESPPRC &data);
 	void clearAndResizeIU(const Data_Input_ESPPRC &data);
 	void resetNumber() {
-		numUnGeneratedLabelsInfeasibility = numGeneratedLabels = numPrunedLabelsBound = numUnInsertedLabelsDominance = 
-			numDeletedLabelsDominance = numSavedLabels = numCompletedRoutes = 0;
+		numUnGeneratedLabelsInfeasibility = numGeneratedLabels = numPrunedLabelsBound = numUnInsertedLabelsDominance =
+			numDeletedLabelsDominance = numSavedLabels = numCompletedRoutes = numDiscardPotential = 0;
 	}
 	void resetTime() {
-		timeBoundQuantity = timeBoundDistance = timeBoundTime = timeBound = timeDP = timeOverall = 0;
+		timeBoundQuantity = timeBoundDistance = timeBoundTime = timeLB = timeUB = timeDP = timeOverall = 0;
 	}
 	// Output.
 	void print(ostream &output) const;
@@ -239,6 +252,9 @@ bool initiateForDPAlgorithmESPPRC(const Data_Input_ESPPRC &data, Data_Auxiliary_
 double lbOfALabelInDPAlgorithmESPPRC(const Data_Input_ESPPRC &data, const Data_Auxiliary_ESPPRC &auxiliary, const Label_ESPPRC &label);
 // Number of labels.
 long long numOfLabels(const vector<unordered_map<bitset<Max_Num_Vertex>, list<Label_ESPPRC>>> &vecMpBtstLst);
+// Core function of dynamic programming algorithm for ESPPRC.
+multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> coreDPAlgorithmESPPRC(const Data_Input_ESPPRC &data, Data_Auxiliary_ESPPRC &auxiliary,
+	ostream &output);
 // Dynamic programming algorithm for ESPPRC.
 multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> DPAlgorithmESPPRC(const Data_Input_ESPPRC &data, Data_Auxiliary_ESPPRC &auxiliary,
 	ostream &output);
@@ -264,5 +280,7 @@ public:
 
 // Test.
 double testDPAlgorithmESPPRC(const ParameterTestDPAlgorithmESPPRC &parameter, ostream &osAll);
+// Test all instances under a folder.
+void testDPAlgorithmESPPRCFolder(const string &folderSolomon, const string &folderInstance, const string &folderOutput);
 
 
