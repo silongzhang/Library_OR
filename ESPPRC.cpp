@@ -779,15 +779,15 @@ multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> coreDPAlgorithmESPPRC(const 
 // Dynamic programming algorithm for ESPPRC.
 multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> DPAlgorithmESPPRC(const Data_Input_ESPPRC &data, Data_Auxiliary_ESPPRC &auxiliary, 
 	ostream &output) {
-	multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> result;
+	multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> resultUB;
+	multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> resultDP;
 	try {
+		// Reset.
+		auxiliary.resetTime();
 		if (data.NumVertices > Max_Num_Vertex) throw exception("The value of Max_Num_Vertex should be increased.");
 
 		string strLog = "Elapsed time: " + numToStr(runTime(start)) + '\t' + "The procedure titled DPAlgorithmESPPRC is running." + '\n';
 		print(data.allowPrintLog, output, strLog);
-
-		// Reset.
-		auxiliary.resetTime();
 
 		// Compute lower bounds for labels.
 		strLog = "Elapsed time: " + numToStr(runTime(start)) + '\t' + "Begin computing lower bounds." + '\n';
@@ -802,24 +802,22 @@ multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> DPAlgorithmESPPRC(const Data
 		last = clock();
 		auxiliary.onlyPotential = true;
 		auxiliary.ub = InfinityPos;
-		result = coreDPAlgorithmESPPRC(data, auxiliary, output);
+		resultUB = coreDPAlgorithmESPPRC(data, auxiliary, output);
 		auxiliary.timeUB = runTime(last);
 		strLog = "Elapsed time: " + numToStr(runTime(start)) + '\t' + "The upper bound computing is finished." + '\n';
 		print(data.allowPrintLog, output, strLog);
 
 		auxiliary.onlyPotential = false;
-		auxiliary.ub = result.begin()->getReducedCost();
+		auxiliary.ub = resultUB.begin()->getReducedCost();
 		last = clock();
-		if (!(!data.mustOptimal && greaterThanReal(runTime(start), data.minRunTime, PPM) &&
-			lessThanReal(auxiliary.ub, data.maxReducedCost, PPM))) {
+		if (data.mustOptimal || lessThanReal(runTime(start), data.minRunTime, PPM) || greaterThanReal(auxiliary.ub, data.maxReducedCost, PPM)) {
 			// DP Algorithm
-			strLog = "Elapsed time: " + numToStr(runTime(start)) + '\t' + "Begin the exact DP procedure." + '\n';
+			strLog = "Elapsed time: " + numToStr(runTime(start)) + '\t' + "Begin the DP procedure." + '\n';
 			print(data.allowPrintLog, output, strLog);
-			result = coreDPAlgorithmESPPRC(data, auxiliary, output);
+			resultDP = coreDPAlgorithmESPPRC(data, auxiliary, output);
 			strLog = "Elapsed time: " + numToStr(runTime(start)) + '\t' + "The DP procedure is finished." + '\n';
 			print(data.allowPrintLog, output, strLog);
-		}
- 
+		} 
 		auxiliary.timeDP = runTime(last);
 		auxiliary.timeOverall = auxiliary.timeLB + auxiliary.timeUB + auxiliary.timeDP;
 
@@ -829,7 +827,7 @@ multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> DPAlgorithmESPPRC(const Data
 	catch (const exception &exc) {
 		printErrorAndExit("DPAlgorithmESPPRC", exc);
 	}
-	return result;
+	return (lessThanReal(resultDP.begin()->getReducedCost(), resultUB.begin()->getReducedCost, PPM) ? resultDP : resultUB);
 }
 
 
