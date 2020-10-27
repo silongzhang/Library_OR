@@ -1,7 +1,5 @@
 #include"ESPPRC.h"
 
-extern clock_t start;
-extern clock_t last;
 
 // Check whether this label can extend to vertex j.
 bool Label_ESPPRC::canExtend(const Data_Input_ESPPRC &data, const int j) const {
@@ -43,9 +41,19 @@ void Consumption_ESPPRC::extend(const Data_Input_ESPPRC &data, const int i, cons
 }
 
 
-// check whether this object is feasible at vertex i (resource constraints are all satisfied).
+// Check whether this object is feasible at vertex i (resource constraints are all satisfied).
 bool Consumption_ESPPRC::feasible(const Data_Input_ESPPRC &data, const int i) const {
 	try {
+		if (quantity < data.QuantityWindow[i].first ||
+			quantity > data.QuantityWindow[i].second ||
+			distance < data.DistanceWindow[i].first ||
+			distance > data.DistanceWindow[i].second ||
+			time < data.TimeWindow[i].first ||
+			time > data.TimeWindow[i].second) {
+			return false;
+		}
+
+/*
 		if (lessThanReal(quantity, data.QuantityWindow[i].first, PPM) ||
 			greaterThanReal(quantity, data.QuantityWindow[i].second, PPM) ||
 			lessThanReal(distance, data.DistanceWindow[i].first, PPM) || 
@@ -54,6 +62,7 @@ bool Consumption_ESPPRC::feasible(const Data_Input_ESPPRC &data, const int i) co
 			greaterThanReal(time, data.TimeWindow[i].second, PPM)) {
 			return false;
 		}
+*/
 	}
 	catch (const exception &exc) {
 		printErrorAndExit("Consumption_ESPPRC::feasible", exc);
@@ -325,7 +334,7 @@ bool canUseLBInLbBasedOnOneResourceGivenAmount(const ResourceType type, const Da
 		else if (type == ResourceType::Distance) {
 			if (floor((data.DistanceWindow[0].second - label.getDistance()) / data.incrementDistLB) < 0)
 				throw exception("Distance limit is broken.");
-
+			
 			flag = greaterThanReal(label.getDistance(), data.DistanceWindow[0].second - data.incrementDistLB * index, PPM);
 		}
 		else if (type == ResourceType::Time) {
@@ -544,19 +553,19 @@ void lbBasedOnAllResources(const Data_Input_ESPPRC &data, Data_Auxiliary_ESPPRC 
 	try {
 		auxiliary.clearAndResizeLB(data);
 
-		last = clock();
+		auxiliary.lastTime = clock();
 		lbBasedOnOneResource(ResourceType::Quantity, data, auxiliary);
-		auxiliary.timeBoundQuantity = runTime(last);
+		auxiliary.timeBoundQuantity = runTime(auxiliary.lastTime);
 
-		last = clock();
+		auxiliary.lastTime = clock();
 		lbBasedOnOneResource(ResourceType::Distance, data, auxiliary);
-		auxiliary.timeBoundDistance = runTime(last);
+		auxiliary.timeBoundDistance = runTime(auxiliary.lastTime);
 
-		last = clock();
+		auxiliary.lastTime = clock();
 		lbBasedOnOneResource(ResourceType::Time, data, auxiliary);
-		auxiliary.timeBoundTime = runTime(last);
+		auxiliary.timeBoundTime = runTime(auxiliary.lastTime);
 
-		last = clock();
+		auxiliary.lastTime = clock();
 		for (int q = 0; q < data.sizeQuantLB; ++q) {
 			for (int d = 0; d < data.sizeDistLB; ++d) {
 				for (int t = 0; t < data.sizeTimeLB; ++t) {
@@ -566,7 +575,7 @@ void lbBasedOnAllResources(const Data_Input_ESPPRC &data, Data_Auxiliary_ESPPRC 
 				}
 			}
 		}
-		auxiliary.timeLB = runTime(last) + auxiliary.timeBoundQuantity + auxiliary.timeBoundDistance + auxiliary.timeBoundTime;
+		auxiliary.timeLB = runTime(auxiliary.lastTime) + auxiliary.timeBoundQuantity + auxiliary.timeBoundDistance + auxiliary.timeBoundTime;
 	}
 	catch (const exception &exc) {
 		printErrorAndExit("lbBasedOnAllResources", exc);
@@ -706,7 +715,7 @@ multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> coreDPAlgorithmESPPRC(const 
 				}
 			}
 
-			strLog = "Elapsed time: " + numToStr(runTime(start)) + '\t' + "Iteration: " + numToStr(++iter) + '\t' +
+			strLog = "Elapsed time: " + numToStr(runTime(auxiliary.startTime)) + '\t' + "Iteration: " + numToStr(++iter) + '\t' +
 				"Upper bound: " + numToStr(auxiliary.ub) + '\n';
 			strLog += "UnGenerated: " + numToStr(auxiliary.numUnGeneratedLabelsInfeasibility) + '\t' +
 				"Generated: " + numToStr(auxiliary.numGeneratedLabels) + '\t' + "Completed: " + numToStr(auxiliary.numCompletedRoutes) + '\n';
@@ -714,8 +723,7 @@ multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> coreDPAlgorithmESPPRC(const 
 				"UnInsertedDominance: " + numToStr(auxiliary.numUnInsertedLabelsDominance) + '\t' +
 				"DeletedDominance: " + numToStr(auxiliary.numDeletedLabelsDominance) + '\n';
 			
-			if (potential.empty()) break;
-			if (auxiliary.onlyPotential) {
+			if (!potential.empty() && auxiliary.onlyPotential) {
 				long long numPotentialOriginal = numOfLabels(auxiliary.nextIU);
 				auto posPtt = potential.begin();
 				for (int i = 1; posPtt != potential.end() && i < data.maxNumPotentialEachStep; ++posPtt, ++i) {}
@@ -744,7 +752,7 @@ multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> coreDPAlgorithmESPPRC(const 
 				auxiliary.nextIU[i].clear();
 			}
 			
-			if (!auxiliary.onlyPotential && !data.mustOptimal && greaterThanReal(runTime(start), data.minRunTime, PPM) && 
+			if (!auxiliary.onlyPotential && !data.mustOptimal && greaterThanReal(runTime(auxiliary.startTime), data.minRunTime, PPM) && 
 				lessThanReal(auxiliary.ub, data.maxReducedCost, PPM)) {
 				break;
 			}
@@ -786,48 +794,48 @@ multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> DPAlgorithmESPPRC(const Data
 		auxiliary.resetTime();
 		if (data.NumVertices > Max_Num_Vertex) throw exception("The value of Max_Num_Vertex should be increased.");
 
-		string strLog = "Elapsed time: " + numToStr(runTime(start)) + '\t' + "The procedure titled DPAlgorithmESPPRC is running." + '\n';
+		string strLog = "Elapsed time: " + numToStr(runTime(auxiliary.startTime)) + '\t' + "The procedure titled DPAlgorithmESPPRC is running." + '\n';
 		print(data.allowPrintLog, output, strLog);
 
 		// Compute lower bounds for labels.
-		strLog = "Elapsed time: " + numToStr(runTime(start)) + '\t' + "Begin computing lower bounds." + '\n';
+		strLog = "Elapsed time: " + numToStr(runTime(auxiliary.startTime)) + '\t' + "Begin computing lower bounds." + '\n';
 		print(data.allowPrintLog, output, strLog);
 		lbBasedOnAllResources(data, auxiliary);
-		strLog = "Elapsed time: " + numToStr(runTime(start)) + '\t' + "Lower bounds computing is finished." + '\n';
+		strLog = "Elapsed time: " + numToStr(runTime(auxiliary.startTime)) + '\t' + "Lower bounds computing is finished." + '\n';
 		print(data.allowPrintLog, output, strLog);
 
 		// Compute upper bounds for the problem.
-		strLog = "Elapsed time: " + numToStr(runTime(start)) + '\t' + "Begin computing the upper bound." + '\n';
+		strLog = "Elapsed time: " + numToStr(runTime(auxiliary.startTime)) + '\t' + "Begin computing the upper bound." + '\n';
 		print(data.allowPrintLog, output, strLog);
-		last = clock();
+		auxiliary.lastTime = clock();
 		auxiliary.onlyPotential = true;
 		auxiliary.ub = InfinityPos;
 		resultUB = coreDPAlgorithmESPPRC(data, auxiliary, output);
-		auxiliary.timeUB = runTime(last);
-		strLog = "Elapsed time: " + numToStr(runTime(start)) + '\t' + "The upper bound computing is finished." + '\n';
+		auxiliary.timeUB = runTime(auxiliary.lastTime);
+		strLog = "Elapsed time: " + numToStr(runTime(auxiliary.startTime)) + '\t' + "The upper bound computing is finished." + '\n';
 		print(data.allowPrintLog, output, strLog);
 
 		auxiliary.onlyPotential = false;
 		auxiliary.ub = resultUB.begin()->getReducedCost();
-		last = clock();
-		if (data.mustOptimal || lessThanReal(runTime(start), data.minRunTime, PPM) || greaterThanReal(auxiliary.ub, data.maxReducedCost, PPM)) {
+		auxiliary.lastTime = clock();
+		if (data.mustOptimal || lessThanReal(runTime(auxiliary.startTime), data.minRunTime, PPM) || greaterThanReal(auxiliary.ub, data.maxReducedCost, PPM)) {
 			// DP Algorithm
-			strLog = "Elapsed time: " + numToStr(runTime(start)) + '\t' + "Begin the DP procedure." + '\n';
+			strLog = "Elapsed time: " + numToStr(runTime(auxiliary.startTime)) + '\t' + "Begin the DP procedure." + '\n';
 			print(data.allowPrintLog, output, strLog);
 			resultDP = coreDPAlgorithmESPPRC(data, auxiliary, output);
-			strLog = "Elapsed time: " + numToStr(runTime(start)) + '\t' + "The DP procedure is finished." + '\n';
+			strLog = "Elapsed time: " + numToStr(runTime(auxiliary.startTime)) + '\t' + "The DP procedure is finished." + '\n';
 			print(data.allowPrintLog, output, strLog);
 		} 
-		auxiliary.timeDP = runTime(last);
+		auxiliary.timeDP = runTime(auxiliary.lastTime);
 		auxiliary.timeOverall = auxiliary.timeLB + auxiliary.timeUB + auxiliary.timeDP;
 
-		strLog = "Elapsed time: " + numToStr(runTime(start)) + '\t' + "The procedure titled DPAlgorithmESPPRC is finished." + '\n';
+		strLog = "Elapsed time: " + numToStr(runTime(auxiliary.startTime)) + '\t' + "The procedure titled DPAlgorithmESPPRC is finished." + '\n';
 		print(data.allowPrintLog, output, strLog);
 	}
 	catch (const exception &exc) {
 		printErrorAndExit("DPAlgorithmESPPRC", exc);
 	}
-	return (lessThanReal(resultDP.begin()->getReducedCost(), resultUB.begin()->getReducedCost, PPM) ? resultDP : resultUB);
+	return (lessThanReal(resultDP.begin()->getReducedCost(), resultUB.begin()->getReducedCost(), PPM) ? resultDP : resultUB);
 }
 
 
@@ -1170,8 +1178,7 @@ void printResultsDPAlgorithmESPPRC(const Data_Input_ESPPRC &data, const Data_Aux
 
 // Test.
 double testDPAlgorithmESPPRC(const ParameterTestDPAlgorithmESPPRC &parameter, ostream &osAll) {
-	start = clock();
-	last = start;
+	Data_Auxiliary_ESPPRC auxiliary;
 	try {
 		Instance_Solomon inst = readSolomonInstance(parameter.strInputSolomon);
 
@@ -1190,6 +1197,7 @@ double testDPAlgorithmESPPRC(const ParameterTestDPAlgorithmESPPRC &parameter, os
 		data.minRunTime = 0;
 		data.maxReducedCost = 0;
 		data.maxNumRoutesReturned = 10;
+		data.maxNumPotentialEachStep = 1e4;
 		data.allowPrintLog = true;
 		data.applyLB = { true,true,true };
 
@@ -1207,7 +1215,6 @@ double testDPAlgorithmESPPRC(const ParameterTestDPAlgorithmESPPRC &parameter, os
 
 		// Algorithm.
 		data.preprocess();
-		Data_Auxiliary_ESPPRC auxiliary;
 		auto result = DPAlgorithmESPPRC(data, auxiliary, osOne);
 		printResultsDPAlgorithmESPPRC(data, auxiliary, osOne, result);
 		osOne.close();
@@ -1223,7 +1230,7 @@ double testDPAlgorithmESPPRC(const ParameterTestDPAlgorithmESPPRC &parameter, os
 	catch (const exception exc) {
 		printErrorAndExit("testDPAlgorithmESPPRC", exc);
 	}
-	return runTime(start);
+	return runTime(auxiliary.startTime);
 }
 
 
@@ -1239,7 +1246,8 @@ void testDPAlgorithmESPPRCFolder(const string &folderSolomon, const string &fold
 		for (const auto &dmn : dominance) {
 			for (const auto &prz : prize) {
 				for (const auto &fileSolomon : names) {
-					string file = numToStr(prz) + "_" + numToStr(dmn.first) + "_" + numToStr(dmn.second) + "_" + fileSolomon;
+					string file = string(fileSolomon.begin(), fileSolomon.end() - 4) + "_" 
+						+ numToStr(prz) + "_" + numToStr(dmn.first) + "_" + numToStr(dmn.second) + ".txt";
 					parameter.strInputSolomon = folderSolomon + fileSolomon;
 					parameter.strInstance = folderInstance + file;
 					parameter.strOutput = folderOutput + file;

@@ -108,6 +108,8 @@ public:
 	double timeUB;
 	double timeDP;
 	double timeOverall;
+	clock_t startTime;
+	clock_t lastTime;
 	// Whether only save potential labels.
 	bool onlyPotential;
 
@@ -119,6 +121,7 @@ public:
 	}
 	void resetTime() {
 		timeBoundQuantity = timeBoundDistance = timeBoundTime = timeLB = timeUB = timeDP = timeOverall = 0;
+		startTime = clock(); lastTime = startTime;
 	}
 	// Output.
 	void print(ostream &output) const;
@@ -144,11 +147,11 @@ public:
 	DistanceType getDistance() const { return distance; }
 	TimeType getTime() const { return time; }
 	TimeType getDepartureTime() const { return departureTime; }
-	// reset this object
+	// Reset this object.
 	void reset() { quantity = 0; distance = 0; time = departureTime; }
 	// Renew this object after extending from vertex i to vertex j.
 	void extend(const Data_Input_ESPPRC &data, const int i, const int j);
-	// check whether this object is feasible at vertex i (resource constraints are all satisfied).
+	// Check whether this object is feasible at vertex i (resource constraints are all satisfied).
 	bool feasible(const Data_Input_ESPPRC &data, const int i) const;
 	// Output.
 	void print(ostream &output) const;
@@ -165,7 +168,7 @@ private:
 public:
 //	double getRealCost() const { return realCost; }
 	double getReducedCost() const { return reducedCost; }
-	// reset this object
+	// Reset this object.
 	void reset() { realCost = 0; reducedCost = 0; }
 	// Renew this object after extending from vertex i to vertex j.
 	void extend(const Data_Input_ESPPRC &data, const int i, const int j);
