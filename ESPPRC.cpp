@@ -702,9 +702,8 @@ multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> coreDPAlgorithmESPPRC(const 
 							}
 							else {
 								if (data.dominateInserted) {
-									auxiliary.numDeletedLabelsDominance += discardAccordingToDominanceRule(auxiliary.pastIU[j], childLabel) +
-										discardAccordingToDominanceRule(auxiliary.currentIU[j], childLabel) +
-										discardAccordingToDominanceRule(auxiliary.nextIU[j], childLabel);
+									auxiliary.numDeletedLabelsDominance += discardAccordingToDominanceRule(auxiliary.currentIU[j], childLabel)
+										+ discardAccordingToDominanceRule(auxiliary.nextIU[j], childLabel);
 								}
 
 								insertLabel(auxiliary.nextIU[j], childLabel);
