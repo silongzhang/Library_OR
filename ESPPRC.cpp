@@ -661,7 +661,8 @@ multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> coreDPAlgorithmESPPRC(const 
 
 		long long iter = 0;
 		long long numCandidates = numOfLabels(auxiliary.currentIU);
-		while (numCandidates > 0 && lessThanReal(runTime(auxiliary.startTime), data.maxRunTime, PPM)) {
+		while (numCandidates > 0 && numCandidates < data.maxNumCandidates && 
+			lessThanReal(runTime(auxiliary.startTime), data.maxRunTime, PPM)) {
 			multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> potential;
 			for (int i = 1; i < data.NumVertices; ++i) {
 				for (const auto &prBtstLst : auxiliary.currentIU[i]) {
@@ -687,14 +688,14 @@ multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> coreDPAlgorithmESPPRC(const 
 							else if (greaterThanReal(lbOfALabelInDPAlgorithmESPPRC(data, auxiliary, childLabel), auxiliary.ub, PPM)) {
 								++auxiliary.numPrunedLabelsBound;
 							}
-							else if (data.dominateUninserted && lessThanReal(runTime(auxiliary.startTime), data.maxDominanceTime, PPM) &&
+							else if (data.dominateUninserted && lessThanReal(runTime(auxiliary.lastTime), data.maxDominanceTime, PPM) &&
 								(labelIsDominated(auxiliary.pastIU[j], childLabel) ||
 									labelIsDominated(auxiliary.currentIU[j], childLabel) ||
 									labelIsDominated(auxiliary.nextIU[j], childLabel))) {
 								++auxiliary.numUnInsertedLabelsDominance;
 							}
 							else {
-								if (data.dominateInserted && lessThanReal(runTime(auxiliary.startTime), data.maxDominanceTime, PPM)) {
+								if (data.dominateInserted && lessThanReal(runTime(auxiliary.lastTime), data.maxDominanceTime, PPM)) {
 									auxiliary.numDeletedLabelsDominance += discardAccordingToDominanceRule(auxiliary.currentIU[j], childLabel)
 										+ discardAccordingToDominanceRule(auxiliary.nextIU[j], childLabel);
 								}
@@ -1135,8 +1136,8 @@ void Data_Input_ESPPRC::print(ostream &output) const {
 			<< numNegArcs << '\t' << percentNegArcs << endl;
 		output << incrementQuantLB << '\t' << sizeQuantLB << '\t' << incrementDistLB << '\t' << sizeDistLB << '\t' 
 			<< incrementTimeLB << '\t' << sizeTimeLB << endl;
-		output << mustOptimal << '\t' << minRunTime << '\t' << maxDominanceTime << '\t' << maxRunTime << '\t' << maxReducedCost << '\t'
-			<< maxNumRoutesReturned << '\t' << maxNumPotentialEachStep << endl;
+		output << mustOptimal << '\t' << minRunTime << '\t' << maxDominanceTime << '\t' << maxRunTime << '\t' << maxNumCandidates << '\t'
+			<< maxReducedCost << '\t' << maxNumRoutesReturned << '\t' << maxNumPotentialEachStep << endl;
 		output << applyLB[0] << '\t' << applyLB[1] << '\t' << applyLB[2] << endl;
 		output << dominateUninserted << '\t' << dominateInserted << endl;
 	}
@@ -1192,6 +1193,7 @@ double testDPAlgorithmESPPRC(const ParameterTestDPAlgorithmESPPRC &parameter, os
 		data.minRunTime = 0;
 		data.maxDominanceTime = 300;
 		data.maxRunTime = 3600;
+		data.maxNumCandidates = 2e8;
 		data.maxReducedCost = 0;
 		data.maxNumRoutesReturned = 10;
 		data.maxNumPotentialEachStep = 1e4;

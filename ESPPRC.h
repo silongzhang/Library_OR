@@ -61,6 +61,8 @@ public:
 	double maxDominanceTime;
 	// The maximum time for running the procedure.
 	double maxRunTime;
+	// The procedure will terminate if candidates in an iteration exceeds this number.
+	int maxNumCandidates;
 	// The reduced cost of returned routes cannot exceed this parameter.
 	double maxReducedCost;
 	// The number of returned routes cannot exceed this parameter.

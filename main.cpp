@@ -5,8 +5,8 @@
 
 int main(int argc, char** argv) {
 	string folderSolomon = "data//solomon instances//solomon_100//";
-	string folderInstance = "data//ESPPRC//Test_2020.10.28.10.03//input//";
-	string folderOutput = "data//ESPPRC//Test_2020.10.28.10.03//output//";
+	string folderInstance = "data//ESPPRC//Test//input//";
+	string folderOutput = "data//ESPPRC//Test//output//";
 
 	testDPAlgorithmESPPRCFolder(folderSolomon, folderInstance, folderOutput);
 
