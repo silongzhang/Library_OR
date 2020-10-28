@@ -715,7 +715,7 @@ multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> coreDPAlgorithmESPPRC(const 
 				"UnInsertedDominance: " + numToStr(auxiliary.numUnInsertedLabelsDominance) + '\t' +
 				"DeletedDominance: " + numToStr(auxiliary.numDeletedLabelsDominance) + '\n';
 			
-			long long numPotentialOriginal = potential.size();
+			long long numPotentialOriginal = numOfLabels(auxiliary.nextIU);
 			if (!potential.empty() && auxiliary.onlyPotential) {
 				auto posPtt = potential.begin();
 				for (int i = 1; posPtt != potential.end() && i < data.maxNumPotentialEachStep; ++posPtt, ++i) {}
