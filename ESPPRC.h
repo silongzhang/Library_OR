@@ -59,6 +59,8 @@ public:
 	double minRunTime;
 	// The maximum time for applying dominance rule.
 	double maxDominanceTime;
+	// The maximum time for running the procedure.
+	double maxRunTime;
 	// The reduced cost of returned routes cannot exceed this parameter.
 	double maxReducedCost;
 	// The number of returned routes cannot exceed this parameter.

@@ -661,7 +661,7 @@ multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> coreDPAlgorithmESPPRC(const 
 
 		long long iter = 0;
 		long long numCandidates = numOfLabels(auxiliary.currentIU);
-		while (numCandidates > 0) {
+		while (numCandidates > 0 && lessThanReal(runTime(auxiliary.startTime), data.maxRunTime, PPM)) {
 			multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> potential;
 			for (int i = 1; i < data.NumVertices; ++i) {
 				for (const auto &prBtstLst : auxiliary.currentIU[i]) {
@@ -798,7 +798,7 @@ multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> DPAlgorithmESPPRC(const Data
 		strLog = "Elapsed time: " + numToStr(runTime(auxiliary.startTime)) + '\t' + "Lower bounds computing is finished." + '\n';
 		print(data.allowPrintLog, output, strLog);
 
-		// Compute upper bounds for the problem.
+		// Compute the upper bound for the problem.
 		strLog = "Elapsed time: " + numToStr(runTime(auxiliary.startTime)) + '\t' + "Begin computing the upper bound." + '\n';
 		print(data.allowPrintLog, output, strLog);
 		auxiliary.lastTime = clock();
@@ -1135,7 +1135,7 @@ void Data_Input_ESPPRC::print(ostream &output) const {
 			<< numNegArcs << '\t' << percentNegArcs << endl;
 		output << incrementQuantLB << '\t' << sizeQuantLB << '\t' << incrementDistLB << '\t' << sizeDistLB << '\t' 
 			<< incrementTimeLB << '\t' << sizeTimeLB << endl;
-		output << mustOptimal << '\t' << minRunTime << '\t' << maxDominanceTime << '\t' << maxReducedCost << '\t'
+		output << mustOptimal << '\t' << minRunTime << '\t' << maxDominanceTime << '\t' << maxRunTime << '\t' << maxReducedCost << '\t'
 			<< maxNumRoutesReturned << '\t' << maxNumPotentialEachStep << endl;
 		output << applyLB[0] << '\t' << applyLB[1] << '\t' << applyLB[2] << endl;
 		output << dominateUninserted << '\t' << dominateInserted << endl;
@@ -1158,7 +1158,8 @@ void printResultsDPAlgorithmESPPRC(const Data_Input_ESPPRC &data, const Data_Aux
 			auxiliary.print(output);
 
 			output << endl << "Number of selected solutions: " << result.size() << '\t';
-			output << (data.mustOptimal ? "(Containing at least one optimal solution.)" : "(May not contain optimal solutions.)") << endl;
+			output << ((data.mustOptimal && lessThanReal(runTime(auxiliary.startTime), data.maxRunTime, PPM)) ?
+				"(Containing at least one optimal solution.)" : "(May not contain optimal solutions.)") << endl;
 			for (const auto &elem : result) {
 				elem.print(output);
 			}
@@ -1190,6 +1191,7 @@ double testDPAlgorithmESPPRC(const ParameterTestDPAlgorithmESPPRC &parameter, os
 		data.mustOptimal = true;
 		data.minRunTime = 0;
 		data.maxDominanceTime = 300;
+		data.maxRunTime = 3600;
 		data.maxReducedCost = 0;
 		data.maxNumRoutesReturned = 10;
 		data.maxNumPotentialEachStep = 1e4;
