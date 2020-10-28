@@ -1,0 +1,104 @@
+Elapsed time: 0	The procedure titled DPAlgorithmESPPRC is running.
+
+Elapsed time: 0	Begin computing lower bounds.
+
+Elapsed time: 9.197	Lower bounds computing is finished.
+
+Elapsed time: 9.197	Begin computing the upper bound.
+
+Elapsed time: 9.235	Iteration: 1	Upper bound: 10
+UnGenerated: 677	Generated: 9523	Completed: 100
+BoundPruned: 1900	UnInsertedDominance: 0	DeletedDominance: 0
+DiscardPotential: 0	CandidatesNextIteration7423
+
+Elapsed time: 11.89	Iteration: 2	Upper bound: 2.2
+UnGenerated: 77043	Generated: 682880	Completed: 7523
+BoundPruned: 328643	UnInsertedDominance: 0	DeletedDominance: 0
+DiscardPotential: 329119	CandidatesNextIteration10072
+
+Elapsed time: 15.974	Iteration: 3	Upper bound: -4.9
+UnGenerated: 221918	Generated: 1555277	Completed: 17595
+BoundPruned: 561673	UnInsertedDominance: 0	DeletedDominance: 0
+DiscardPotential: 948219	CandidatesNextIteration10195
+
+Elapsed time: 19.603	Iteration: 4	Upper bound: -10.2
+UnGenerated: 444038	Generated: 2362852	Completed: 27790
+BoundPruned: 833206	UnInsertedDominance: 0	DeletedDominance: 0
+DiscardPotential: 1463740	CandidatesNextIteration10326
+
+Elapsed time: 22.588	Iteration: 5	Upper bound: -17.8
+UnGenerated: 741615	Generated: 3108201	Completed: 38116
+BoundPruned: 1154171	UnInsertedDominance: 0	DeletedDominance: 0
+DiscardPotential: 1867509	CandidatesNextIteration10289
+
+Elapsed time: 24.991	Iteration: 6	Upper bound: -24.9
+UnGenerated: 1085160	Generated: 3803845	Completed: 48405
+BoundPruned: 1508247	UnInsertedDominance: 0	DeletedDominance: 0
+DiscardPotential: 2188407	CandidatesNextIteration10381
+
+Elapsed time: 27.012	Iteration: 7	Upper bound: -31.8
+UnGenerated: 1469103	Generated: 4468383	Completed: 58786
+BoundPruned: 1922535	UnInsertedDominance: 0	DeletedDominance: 0
+DiscardPotential: 2418051	CandidatesNextIteration10225
+
+Elapsed time: 28.679	Iteration: 8	Upper bound: -40.2
+UnGenerated: 1883851	Generated: 5086360	Completed: 69011
+BoundPruned: 2358793	UnInsertedDominance: 0	DeletedDominance: 0
+DiscardPotential: 2579498	CandidatesNextIteration10047
+
+Elapsed time: 30.053	Iteration: 9	Upper bound: -47.8
+UnGenerated: 2306464	Generated: 5678494	Completed: 79058
+BoundPruned: 2883782	UnInsertedDominance: 0	DeletedDominance: 0
+DiscardPotential: 2626557	CandidatesNextIteration10039
+
+Elapsed time: 31.154	Iteration: 10	Upper bound: -53.5
+UnGenerated: 2712189	Generated: 6286708	Completed: 89097
+BoundPruned: 3468548	UnInsertedDominance: 0	DeletedDominance: 0
+DiscardPotential: 2629894	CandidatesNextIteration10072
+
+Elapsed time: 31.887	Iteration: 11	Upper bound: -59.1
+UnGenerated: 3177163	Generated: 6839006	Completed: 99169
+BoundPruned: 4008238	UnInsertedDominance: 0	DeletedDominance: 0
+DiscardPotential: 2629894	CandidatesNextIteration2536
+
+Elapsed time: 31.896	Iteration: 12	Upper bound: -59.8
+UnGenerated: 3430761	Generated: 6841544	Completed: 101705
+BoundPruned: 4008238	UnInsertedDominance: 0	DeletedDominance: 0
+DiscardPotential: 2629894	CandidatesNextIteration2
+
+Elapsed time: 31.897	Iteration: 13	Upper bound: -64.9
+UnGenerated: 3430961	Generated: 6841546	Completed: 101707
+BoundPruned: 4008238	UnInsertedDominance: 0	DeletedDominance: 0
+DiscardPotential: 2629894	CandidatesNextIteration0
+
+Saved: 203414
+
+Elapsed time: 32.005	The upper bound computing is finished.
+
+Elapsed time: 32.005	Begin the DP procedure.
+
+Elapsed time: 32.034	Iteration: 1	Upper bound: -64.9
+UnGenerated: 677	Generated: 9523	Completed: 100
+BoundPruned: 6815	UnInsertedDominance: 0	DeletedDominance: 0
+DiscardPotential: 0	CandidatesNextIteration2508
+
+Elapsed time: 32.767	Iteration: 2	Upper bound: -64.9
+UnGenerated: 20448	Generated: 243060	Completed: 2608
+BoundPruned: 197536	UnInsertedDominance: 0	DeletedDominance: 0
+DiscardPotential: 0	CandidatesNextIteration40308
+
+Elapsed time: 43.494	Iteration: 3	Upper bound: -64.9
+UnGenerated: 495321	Generated: 3839295	Completed: 42916
+BoundPruned: 3532090	UnInsertedDominance: 0	DeletedDominance: 0
+DiscardPotential: 0	CandidatesNextIteration221373
+
+Elapsed time: 98.071	Iteration: 4	Upper bound: -64.9
+UnGenerated: 4169990	Generated: 22523299	Completed: 264289
+BoundPruned: 20588074	UnInsertedDominance: 0	DeletedDominance: 0
+DiscardPotential: 0	CandidatesNextIteration1406647
+
+Elapsed time: 409.915	Iteration: 5	Upper bound: -64.9
+UnGenerated: 34235135	Generated: 134529501	Completed: 1670936
+BoundPruned: 127582699	UnInsertedDominance: 0	DeletedDominance: 0
+DiscardPotential: 0	CandidatesNextIteration3604930
+

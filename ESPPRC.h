@@ -57,6 +57,8 @@ public:
 	bool mustOptimal;
 	// The minimum run time if mustOptimal = false and optimal solutions are not necessarily already found.
 	double minRunTime;
+	// The maximum time for applying dominance rule.
+	double maxDominanceTime;
 	// The reduced cost of returned routes cannot exceed this parameter.
 	double maxReducedCost;
 	// The number of returned routes cannot exceed this parameter.
