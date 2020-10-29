@@ -5,14 +5,11 @@
 
 double testConstrainDPAlgorithmESPPRC(const ParameterTestDPAlgorithmESPPRC &parameter, const vector<bool> &cnst, ostream &osAll);
 void testConstrainDPAlgorithmESPPRCFolder(const string &folderSolomon, const string &folderInstance, const string &folderOutput);
+void TestFolder();
 
 
 int main(int argc, char** argv) {
-	string folderSolomon = "data//ESPPRC//Test//solomon instances//solomon_100//";
-	string folderInstance = "data//ESPPRC//Test//input//";
-	string folderOutput = "data//ESPPRC//Test//output//";
-
-	testConstrainDPAlgorithmESPPRCFolder(folderSolomon, folderInstance, folderOutput);
+	TestFolder();
 	return 0;
 }
 

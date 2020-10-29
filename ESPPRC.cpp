@@ -725,6 +725,16 @@ multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> coreDPAlgorithmESPPRC(const 
 			strLog += "DiscardPotential: " + numToStr(auxiliary.numDiscardPotential) + '\t'
 				+ "CandidatesNextIteration: " + numToStr(numCandidates) + '\n';
 			print(data.allowPrintLog, output, strLog);
+			
+			if (!auxiliary.onlyPotential && !data.mustOptimal && greaterThanReal(runTime(auxiliary.startTime), data.minRunTime, PPM) && 
+				lessThanReal(auxiliary.ub, data.maxReducedCost, PPM)) {
+				break;
+			}
+			if (!auxiliary.onlyPotential && data.mustOptimal &&
+				(numCandidates > data.maxNumCandidates || !lessThanReal(runTime(auxiliary.startTime), data.maxRunTime, PPM))) {
+				auxiliary.optimal = false;
+				break;
+			}
 
 			for (int i = 1; i < data.NumVertices; ++i) {
 				for (const auto &prBtstLst : auxiliary.currentIU[i]) {
@@ -736,16 +746,6 @@ multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> coreDPAlgorithmESPPRC(const 
 				auxiliary.currentIU[i] = auxiliary.nextIU[i];
 
 				auxiliary.nextIU[i].clear();
-			}
-			
-			if (!auxiliary.onlyPotential && !data.mustOptimal && greaterThanReal(runTime(auxiliary.startTime), data.minRunTime, PPM) && 
-				lessThanReal(auxiliary.ub, data.maxReducedCost, PPM)) {
-				break;
-			}
-			if (!auxiliary.onlyPotential && data.mustOptimal &&
-				(numCandidates > data.maxNumCandidates || !lessThanReal(runTime(auxiliary.startTime), data.maxRunTime, PPM))) {
-				auxiliary.optimal = false;
-				break;
 			}
 		}
 
