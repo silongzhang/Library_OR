@@ -44,25 +44,15 @@ void Consumption_ESPPRC::extend(const Data_Input_ESPPRC &data, const int i, cons
 // Check whether this object is feasible at vertex i (resource constraints are all satisfied).
 bool Consumption_ESPPRC::feasible(const Data_Input_ESPPRC &data, const int i) const {
 	try {
-		if (quantity < data.QuantityWindow[i].first ||
-			quantity > data.QuantityWindow[i].second ||
-			distance < data.DistanceWindow[i].first ||
-			distance > data.DistanceWindow[i].second ||
-			time < data.TimeWindow[i].first ||
-			time > data.TimeWindow[i].second) {
+		if (data.constrainResource[0] && (quantity < data.QuantityWindow[i].first || quantity > data.QuantityWindow[i].second)) {
 			return false;
 		}
-
-/*
-		if (lessThanReal(quantity, data.QuantityWindow[i].first, PPM) ||
-			greaterThanReal(quantity, data.QuantityWindow[i].second, PPM) ||
-			lessThanReal(distance, data.DistanceWindow[i].first, PPM) || 
-			greaterThanReal(distance, data.DistanceWindow[i].second, PPM) || 
-			lessThanReal(time, data.TimeWindow[i].first, PPM) || 
-			greaterThanReal(time, data.TimeWindow[i].second, PPM)) {
+		if (data.constrainResource[1] && (distance < data.DistanceWindow[i].first || distance > data.DistanceWindow[i].second)) {
 			return false;
 		}
-*/
+		if (data.constrainResource[2] && (time < data.TimeWindow[i].first || time > data.TimeWindow[i].second)) {
+			return false;
+		}
 	}
 	catch (const exception &exc) {
 		printErrorAndExit("Consumption_ESPPRC::feasible", exc);
@@ -610,12 +600,12 @@ bool initiateForDPAlgorithmESPPRC(const Data_Input_ESPPRC &data, Data_Auxiliary_
 double lbOfALabelInDPAlgorithmESPPRC(const Data_Input_ESPPRC &data, const Data_Auxiliary_ESPPRC &auxiliary, const Label_ESPPRC &label) {
 	double lb;
 	try {
-		int q = floor((data.QuantityWindow[0].second - label.getQuantity()) / data.incrementQuantLB);
-		int d = floor((data.DistanceWindow[0].second - label.getDistance()) / data.incrementDistLB);
-		int t = floor((data.TimeWindow[0].second - label.getTime()) / data.incrementTimeLB);
+		int q = data.constrainResource[0] ? floor((data.QuantityWindow[0].second - label.getQuantity()) / data.incrementQuantLB) : 0;
+		int d = data.constrainResource[1] ? floor((data.DistanceWindow[0].second - label.getDistance()) / data.incrementDistLB) : 0;
+		int t = data.constrainResource[2] ? floor((data.TimeWindow[0].second - label.getTime()) / data.incrementTimeLB) : 0;
 		int i = label.getTail();
 
-		if (q < 0 || d < 0 || t < 0 || i < 1) throw exception();
+		if (q < 0 || d < 0 || t < 0 || i < 1) throw exception("Input Error.");
 		else if (q < data.sizeQuantLB && d < data.sizeDistLB && t < data.sizeTimeLB && i < data.NumVertices) {
 			lb = auxiliary.LBQDTI[q][d][t][i] + label.getReducedCost();
 		}
@@ -1144,6 +1134,7 @@ void Data_Input_ESPPRC::print(ostream &output) const {
 			<< incrementTimeLB << '\t' << sizeTimeLB << endl;
 		output << mustOptimal << '\t' << minRunTime << '\t' << maxDominanceTime << '\t' << maxRunTime << '\t' << maxNumCandidates << '\t'
 			<< maxReducedCost << '\t' << maxNumRoutesReturned << '\t' << maxNumPotentialEachStep << endl;
+		output << constrainResource[0] << '\t' << constrainResource[1] << '\t' << constrainResource[2] << endl;
 		output << applyLB[0] << '\t' << applyLB[1] << '\t' << applyLB[2] << endl;
 		output << dominateUninserted << '\t' << dominateInserted << endl;
 	}
@@ -1203,7 +1194,8 @@ double testDPAlgorithmESPPRC(const ParameterTestDPAlgorithmESPPRC &parameter, os
 		data.maxNumRoutesReturned = 10;
 		data.maxNumPotentialEachStep = 1e4;
 		data.allowPrintLog = true;
-		data.applyLB = { true,true,true };
+		data.constrainResource = { true,true,true };
+		data.applyLB = data.constrainResource;
 
 		readDataSolomonESPPRC(inst, data, coefDist, prize, precision);
 

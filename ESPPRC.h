@@ -74,6 +74,9 @@ public:
 	// Whether dominance rule is adopted.
 	bool dominateUninserted;
 	bool dominateInserted;
+	// Whether constraints corresponding to resource X are considered.
+	// constrainResource[0], constrainResource[1], constrainResource[2] correspond to Quantity, Distance, Time respectively.
+	vector<bool> constrainResource;
 	// Whether lower bounds corresponding to resource X should be applied.
 	// applyLB[0], applyLB[1], applyLB[2] correspond to Quantity, Distance, Time respectively.
 	vector<bool> applyLB;
