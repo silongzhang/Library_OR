@@ -652,10 +652,11 @@ multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> coreDPAlgorithmESPPRC(const 
 
 		long long iter = 0;
 		long long numCandidates = numOfLabels(auxiliary.currentIU);
-		while (numCandidates > 0 && numCandidates < data.maxNumCandidates && 
-			lessThanReal(runTime(auxiliary.startTime), data.maxRunTime, PPM)) {
-			multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> potential;
-			for (int i = 1; i < data.NumVertices; ++i) {
+		bool loop = true;
+		while (loop && numCandidates > 0) {
+			numCandidates = 0;
+			multiset<double> potentialValues;
+			for (int i = 1; loop && i < data.NumVertices; ++i) {
 				for (const auto &prBtstLst : auxiliary.currentIU[i]) {
 					for (const auto &parentLabel : prBtstLst.second) {
 						if (parentLabel.getUnreachable().test(0)) throw exception("This label cannot extend to the depot.");
@@ -672,6 +673,9 @@ multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> coreDPAlgorithmESPPRC(const 
 							if (j == 0) {
 								++auxiliary.numCompletedRoutes;
 								result.insert(childLabel);
+								if (result.size() > data.maxNumRoutesReturned) {
+									result.erase(prev(result.end()));
+								}
 								if (lessThanReal(childLabel.getReducedCost(), auxiliary.ub, PPM)) {
 									auxiliary.ub = childLabel.getReducedCost();
 								}
@@ -687,15 +691,31 @@ multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> coreDPAlgorithmESPPRC(const 
 							}
 							else {
 								if (data.dominateInserted && lessThanReal(runTime(auxiliary.lastTime), data.maxDominanceTime, PPM)) {
-									auxiliary.numDeletedLabelsDominance += discardAccordingToDominanceRule(auxiliary.currentIU[j], childLabel)
-										+ discardAccordingToDominanceRule(auxiliary.nextIU[j], childLabel);
+									const long long numDeletedCurrent = discardAccordingToDominanceRule(auxiliary.currentIU[j], childLabel);
+									const long long numDeletedNext = discardAccordingToDominanceRule(auxiliary.nextIU[j], childLabel);
+									auxiliary.numDeletedLabelsDominance += numDeletedCurrent + numDeletedNext;
+									numCandidates -= numDeletedNext;
 								}
 
 								insertLabel(auxiliary.nextIU[j], childLabel);
-								potential.insert(childLabel);
+								++numCandidates;
+								potentialValues.insert(childLabel.getReducedCost());
+								if (potentialValues.size() > data.maxNumPotentialEachStep) {
+									potentialValues.erase(prev(potentialValues.end()));
+								}
 							}
 						}
 					}
+				}
+				if (!auxiliary.onlyPotential && !data.mustOptimal && greaterThanReal(runTime(auxiliary.startTime), data.minRunTime, PPM) &&
+					lessThanReal(auxiliary.ub, data.maxReducedCost, PPM)) {
+					loop = false;
+				}
+				if (!auxiliary.onlyPotential && (numCandidates > data.maxNumCandidates || !lessThanReal(runTime(auxiliary.startTime), data.maxRunTime, PPM))) {
+					strLog = "Terminate because of the limit of number of labels or elapsed time." + '\n';
+					print(data.allowPrintLog, output, strLog);
+					auxiliary.optimal = false;
+					loop = false;
 				}
 			}
 
@@ -708,11 +728,8 @@ multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> coreDPAlgorithmESPPRC(const 
 				"DeletedDominance: " + numToStr(auxiliary.numDeletedLabelsDominance) + '\n';
 			
 			long long numPotentialOriginal = numOfLabels(auxiliary.nextIU);
-			if (!potential.empty() && auxiliary.onlyPotential) {
-				auto posPtt = potential.begin();
-				for (int i = 1; posPtt != potential.end() && i < data.maxNumPotentialEachStep; ++posPtt, ++i) {}
-				if (posPtt == potential.end()) --posPtt;
-				const double valuePtt = posPtt->getReducedCost();
+			if (!potentialValues.empty() && auxiliary.onlyPotential) {
+				const double valuePtt = *prev(potentialValues.end());
 				for (int i = 1; i < data.NumVertices; ++i) {
 					for (auto &prBtstLst : auxiliary.nextIU[i]) {
 						prBtstLst.second.remove_if([valuePtt](const Label_ESPPRC &elem) 
@@ -726,27 +743,18 @@ multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> coreDPAlgorithmESPPRC(const 
 				+ "CandidatesNextIteration: " + numToStr(numCandidates) + '\n';
 			print(data.allowPrintLog, output, strLog);
 			
-			if (!auxiliary.onlyPotential && !data.mustOptimal && greaterThanReal(runTime(auxiliary.startTime), data.minRunTime, PPM) && 
-				lessThanReal(auxiliary.ub, data.maxReducedCost, PPM)) {
-				break;
-			}
-			if (!auxiliary.onlyPotential && data.mustOptimal &&
-				(numCandidates > data.maxNumCandidates || !lessThanReal(runTime(auxiliary.startTime), data.maxRunTime, PPM))) {
-				strLog = "Terminate because of the limit of number of labels or elapsed time." + '\n';
-				print(data.allowPrintLog, output, strLog);
-				auxiliary.optimal = false;
-				break;
-			}
-
 			for (int i = 1; i < data.NumVertices; ++i) {
-				for (const auto &prBtstLst : auxiliary.currentIU[i]) {
-					for (const auto &elem : prBtstLst.second) {
-						insertLabel(auxiliary.pastIU[i], elem);
+				if (lessThanReal(runTime(auxiliary.lastTime), data.maxDominanceTime, PPM)) {
+					for (const auto &prBtstLst : auxiliary.currentIU[i]) {
+						for (const auto &elem : prBtstLst.second) {
+							insertLabel(auxiliary.pastIU[i], elem);
+						}
 					}
 				}
-
+				else {
+					auxiliary.pastIU[i].clear();
+				}
 				auxiliary.currentIU[i] = auxiliary.nextIU[i];
-
 				auxiliary.nextIU[i].clear();
 			}
 		}
@@ -756,13 +764,6 @@ multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> coreDPAlgorithmESPPRC(const 
 		print(data.allowPrintLog, output, strLog);
 
 		if (result.empty()) throw exception("The result should not be empty.");
-		auto endPos = result.begin();
-		int numRet = 0;
-		for (; endPos != result.end() && numRet < data.maxNumRoutesReturned &&
-			lessThanReal(endPos->getReducedCost(), data.maxReducedCost, PPM); ++endPos, ++numRet) {
-		}
-
-		result = multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion>(result.begin(), endPos);
 		for (const auto &elem : result) {
 			if (!elem.feasible(data))
 				throw exception("Feasibility checking failed.");
