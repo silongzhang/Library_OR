@@ -732,6 +732,8 @@ multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> coreDPAlgorithmESPPRC(const 
 			}
 			if (!auxiliary.onlyPotential && data.mustOptimal &&
 				(numCandidates > data.maxNumCandidates || !lessThanReal(runTime(auxiliary.startTime), data.maxRunTime, PPM))) {
+				strLog = "Terminate because of the limit of number of labels or elapsed time." + '\n';
+				print(data.allowPrintLog, output, strLog);
 				auxiliary.optimal = false;
 				break;
 			}

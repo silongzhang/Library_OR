@@ -10,7 +10,7 @@ void TestFolder();
 
 
 int main(int argc, char** argv) {
-	TestConstrainFolder();
+	TestFolder();
 	return 0;
 }
 
@@ -25,7 +25,7 @@ void TestConstrainFolder() {
 
 
 void TestFolder() {
-	string folderSolomon = "data//solomon instances//solomon_100//";
+	string folderSolomon = "data//ESPPRC//Test//solomon instances//solomon_100//";
 	string folderInstance = "data//ESPPRC//Test//input//";
 	string folderOutput = "data//ESPPRC//Test//output//";
 
