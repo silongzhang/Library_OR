@@ -5,12 +5,22 @@
 
 double testConstrainDPAlgorithmESPPRC(const ParameterTestDPAlgorithmESPPRC &parameter, const vector<bool> &cnst, ostream &osAll);
 void testConstrainDPAlgorithmESPPRCFolder(const string &folderSolomon, const string &folderInstance, const string &folderOutput);
+void TestConstrainFolder();
 void TestFolder();
 
 
 int main(int argc, char** argv) {
-	TestFolder();
+	TestConstrainFolder();
 	return 0;
+}
+
+
+void TestConstrainFolder() {
+	string folderSolomon = "data//ESPPRC//Test//solomon instances//solomon_100//";
+	string folderInstance = "data//ESPPRC//Test//input//";
+	string folderOutput = "data//ESPPRC//Test//output//";
+
+	testConstrainDPAlgorithmESPPRCFolder(folderSolomon, folderInstance, folderOutput);
 }
 
 
@@ -98,16 +108,14 @@ void testConstrainDPAlgorithmESPPRCFolder(const string &folderSolomon, const str
 		for (const auto &fileSolomon : names) {
 			for (const auto &Q : TF) {
 				for (const auto &D : TF) {
-					for (const auto &T : TF) {
-						vector<bool> cnst = { Q,D,T };
-						string file = string(fileSolomon.begin(), fileSolomon.end() - 4) + "_" + numToStr(cnst[0]) + "_"
-							+ numToStr(cnst[1]) + "_" + numToStr(cnst[2]) + ".txt";
-						parameter.strInputSolomon = folderSolomon + fileSolomon;
-						parameter.strInstance = folderInstance + file;
-						parameter.strOutput = folderOutput + file;
+					vector<bool> cnst = { Q,D,true };
+					string file = string(fileSolomon.begin(), fileSolomon.end() - 4) + "_" + numToStr(cnst[0]) + "_"
+						+ numToStr(cnst[1]) + "_" + numToStr(cnst[2]) + ".txt";
+					parameter.strInputSolomon = folderSolomon + fileSolomon;
+					parameter.strInstance = folderInstance + file;
+					parameter.strOutput = folderOutput + file;
 
-						testConstrainDPAlgorithmESPPRC(parameter, cnst, cout);
-					}
+					testConstrainDPAlgorithmESPPRC(parameter, cnst, cout);
 				}
 			}
 		}
