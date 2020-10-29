@@ -118,6 +118,8 @@ public:
 	clock_t lastTime;
 	// Whether only save potential labels.
 	bool onlyPotential;
+	// Whether an optimal solution can be obtained.
+	bool optimal;
 
 	void clearAndResizeLB(const Data_Input_ESPPRC &data);
 	void clearAndResizeIU(const Data_Input_ESPPRC &data);

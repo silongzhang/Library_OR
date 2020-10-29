@@ -651,6 +651,7 @@ multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> coreDPAlgorithmESPPRC(const 
 	multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> result;
 	try {
 		auxiliary.clearAndResizeIU(data);
+		auxiliary.optimal = !auxiliary.onlyPotential && data.mustOptimal;
 		string strLog;
 
 		// Initiate.
@@ -749,6 +750,11 @@ multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> coreDPAlgorithmESPPRC(const 
 			
 			if (!auxiliary.onlyPotential && !data.mustOptimal && greaterThanReal(runTime(auxiliary.startTime), data.minRunTime, PPM) && 
 				lessThanReal(auxiliary.ub, data.maxReducedCost, PPM)) {
+				break;
+			}
+			if (!auxiliary.onlyPotential && data.mustOptimal &&
+				(numCandidates > data.maxNumCandidates || !lessThanReal(runTime(auxiliary.startTime), data.maxRunTime, PPM))) {
+				auxiliary.optimal = false;
 				break;
 			}
 		}
@@ -1159,8 +1165,7 @@ void printResultsDPAlgorithmESPPRC(const Data_Input_ESPPRC &data, const Data_Aux
 			auxiliary.print(output);
 
 			output << endl << "Number of selected solutions: " << result.size() << '\t';
-			output << ((data.mustOptimal && lessThanReal(runTime(auxiliary.startTime), data.maxRunTime, PPM)) ?
-				"(Containing at least one optimal solution.)" : "(May not contain optimal solutions.)") << endl;
+			output << (auxiliary.optimal ? "(Containing at least one optimal solution.)" : "(May not contain optimal solutions.)") << endl;
 			for (const auto &elem : result) {
 				elem.print(output);
 			}
@@ -1193,7 +1198,7 @@ double testDPAlgorithmESPPRC(const ParameterTestDPAlgorithmESPPRC &parameter, os
 		data.minRunTime = 0;
 		data.maxDominanceTime = 300;
 		data.maxRunTime = 3600;
-		data.maxNumCandidates = 2e8;
+		data.maxNumCandidates = 2e7;
 		data.maxReducedCost = 0;
 		data.maxNumRoutesReturned = 10;
 		data.maxNumPotentialEachStep = 1e4;
