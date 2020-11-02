@@ -683,14 +683,16 @@ multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> coreDPAlgorithmESPPRC(const 
 							else if (greaterThanReal(lbOfALabelInDPAlgorithmESPPRC(data, auxiliary, childLabel), auxiliary.ub, PPM)) {
 								++auxiliary.numPrunedLabelsBound;
 							}
-							else if (data.dominateUninserted && lessThanReal(runTime(auxiliary.lastTime), data.maxDominanceTime, PPM) &&
+							else if (!auxiliary.onlyPotential && 
+								data.dominateUninserted && lessThanReal(runTime(auxiliary.lastTime), data.maxDominanceTime, PPM) &&
 								(labelIsDominated(auxiliary.pastIU[j], childLabel) ||
 									labelIsDominated(auxiliary.currentIU[j], childLabel) ||
 									labelIsDominated(auxiliary.nextIU[j], childLabel))) {
 								++auxiliary.numUnInsertedLabelsDominance;
 							}
 							else {
-								if (data.dominateInserted && lessThanReal(runTime(auxiliary.lastTime), data.maxDominanceTime, PPM)) {
+								if (!auxiliary.onlyPotential && data.dominateInserted && 
+									lessThanReal(runTime(auxiliary.lastTime), data.maxDominanceTime, PPM)) {
 									const long long numDeletedCurrent = discardAccordingToDominanceRule(auxiliary.currentIU[j], childLabel);
 									const long long numDeletedNext = discardAccordingToDominanceRule(auxiliary.nextIU[j], childLabel);
 									auxiliary.numDeletedLabelsDominance += numDeletedCurrent + numDeletedNext;
@@ -732,8 +734,8 @@ multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> coreDPAlgorithmESPPRC(const 
 				const double valuePtt = *prev(potentialValues.end());
 				for (int i = 1; i < data.NumVertices; ++i) {
 					for (auto &prBtstLst : auxiliary.nextIU[i]) {
-						prBtstLst.second.remove_if([valuePtt](const Label_ESPPRC &elem) 
-						{return greaterThanReal(elem.getReducedCost(), valuePtt, PPM); });
+						prBtstLst.second.remove_if([valuePtt](const Label_ESPPRC &elem)
+						{return !lessThanReal(elem.getReducedCost(), valuePtt, PPM); });
 					}
 				}
 			}
