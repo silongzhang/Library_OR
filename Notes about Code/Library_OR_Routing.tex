@@ -1,0 +1,69 @@
+\documentclass[UTF8]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{indentfirst}
+\usepackage{dashrule}
+\usepackage{subfig}
+\usepackage{makecell}
+\usepackage{bm}
+\usepackage{tabu}
+\usepackage{multirow}
+\usepackage{booktabs}
+\usepackage{esdiff}
+\usepackage[flushleft]{threeparttable}
+\usepackage{picinpar}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{mathrsfs}
+\usepackage{amsfonts,amssymb}
+\usepackage{upgreek}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{diagbox}
+\usepackage{caption}
+
+\geometry{a4paper,left=2cm,right=2cm,top=2cm,bottom=2cm}
+\linespread{1.3}
+\fontsize{12pt}{\baselineskip}
+\selectfont
+\bibliographystyle{apalike}
+
+\newtheorem{assumption}{Assumption}
+\newtheorem{proposition}{Proposition}
+\newtheorem{corollary}{Corollary}
+\newtheorem{definition}{Definition}
+
+\title{\textbf{\Large Notes about Code for Routing}}
+\author{ZHANG Silong}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{TSP}
+
+	\subsection{Miller–Tucker–Zemlin (MTZ) formulation}
+		\begin{align*}
+			\min \sum_{i = 1}^{n} \sum_{j = 1, j \ne i}^{n} c_{ij} x_{ij} & \\
+			s.t. \qquad \sum_{j = 1, j \ne i}^{n} x_{ij} = 1 \qquad & i = 1, 2, \ldots, n \\
+			\sum_{i = 1, i \ne j}^{n}  x_{ij} = 1 \qquad & j = 1, 2, \ldots, n \\
+			u_j - u_i + n(1 - x_{ij}) \ge 1 \qquad & 1 \le i \ne j \le n \\
+			x_{ij} \in \{0, 1\} \qquad & 1 \le i \ne j \le n \\
+			u_i \in \{1, 2, \ldots, n\} \qquad & i = 1, 2, \ldots, n 
+		\end{align*}
+
+	\subsection{Dantzig–Fulkerson–Johnson (DFJ) formulation}
+		\begin{align*}
+			\min \sum_{i = 1}^{n} \sum_{j = 1, j \ne i}^{n} c_{ij} x_{ij} & \\
+			s.t. \qquad \sum_{j = 1, j \ne i}^{n} x_{ij} = 1 \qquad & i = 1, 2, \ldots, n \\
+			\sum_{i = 1, i \ne j}^{n}  x_{ij} = 1 \qquad & j = 1, 2, \ldots, n \\
+			\sum_{i \in S} \sum_{j \in S, j \ne i} x_{ij} \le |S| - 1 \qquad & S \subset \{1, 2, \ldots, n\}, |S| \ge 2 \\
+			x_{ij} \in \{0, 1\} \qquad & 1 \le i \ne j \le n 
+		\end{align*}
+
+
+\end{document}
