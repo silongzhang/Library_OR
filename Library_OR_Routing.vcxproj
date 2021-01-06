@@ -15,12 +15,14 @@
     <ClCompile Include="ESPPRC.cpp" />
     <ClCompile Include="general.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="TSP.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="define.h" />
     <ClInclude Include="ESPPRC.h" />
     <ClInclude Include="general.h" />
     <ClInclude Include="Header.h" />
+    <ClInclude Include="TSP.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{A3053798-7F71-431E-895C-AE32E1F46895}</ProjectGuid>

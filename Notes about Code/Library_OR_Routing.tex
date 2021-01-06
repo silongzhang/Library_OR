@@ -51,9 +51,10 @@
 			\min \sum_{i = 1}^{n} \sum_{j = 1, j \ne i}^{n} c_{ij} x_{ij} & \\
 			s.t. \qquad \sum_{j = 1, j \ne i}^{n} x_{ij} = 1 \qquad & i = 1, 2, \ldots, n \\
 			\sum_{i = 1, i \ne j}^{n}  x_{ij} = 1 \qquad & j = 1, 2, \ldots, n \\
-			u_j - u_i + n(1 - x_{ij}) \ge 1 \qquad & 1 \le i \ne j \le n \\
+			u_j - u_i + n(1 - x_{ij}) \ge 1 \qquad & 1 \le i \le n, 2 \le j \le n, i \ne j \\
 			x_{ij} \in \{0, 1\} \qquad & 1 \le i \ne j \le n \\
-			u_i \in \{1, 2, \ldots, n\} \qquad & i = 1, 2, \ldots, n 
+			u_1 = 1 \qquad & \\
+			u_i \in \{1, 2, \ldots, n\} \qquad & i = 2, \ldots, n 
 		\end{align*}
 
 	\subsection{Dantzig–Fulkerson–Johnson (DFJ) formulation}

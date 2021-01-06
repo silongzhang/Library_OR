@@ -78,3 +78,17 @@ void getFiles(const string &folder, vector<string> &paths, vector<string> &names
 }
 
 
+// Note that the original set is {begin, begin + 1, begin + 2, ..., end - 1}.
+void CoreNonEmptySubSets(vector<set<int>>& subsets, int begin, int end, set<int> temp) {
+	if (begin == end) {
+		if (!temp.empty()) {
+			subsets.push_back(temp);
+		}
+	}
+	else {
+		CoreNonEmptySubSets(subsets, begin + 1, end, temp);
+		temp.insert(begin);
+		CoreNonEmptySubSets(subsets, begin + 1, end, temp);
+	}
+}
+

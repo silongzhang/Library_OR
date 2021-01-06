@@ -1,6 +1,7 @@
 #include"Header.h"
 #include"general.h"
 #include"ESPPRC.h"
+#include"TSP.h"
 
 
 double testConstrainDPAlgorithmESPPRC(const ParameterTestDPAlgorithmESPPRC &parameter, const vector<bool> &cnst, ostream &osAll);
@@ -10,7 +11,11 @@ void TestFolder();
 
 
 int main(int argc, char** argv) {
-	TestFolder();
+	const string folderInput = "data\\TSP\\Test\\Input\\";
+	const string fileOutput = "data\\TSP\\Test\\Output\\TestMTZAndDFJ.txt";
+	int begin = 10, end = 51, incre = 5;
+	const double timeLimit = 600;
+	testTSP(folderInput, begin, end, incre, fileOutput, timeLimit);
 	return 0;
 }
 
