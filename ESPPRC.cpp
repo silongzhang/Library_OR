@@ -186,30 +186,44 @@ Label_ESPPRC::Label_ESPPRC(const Data_Input_ESPPRC &data, const int origin, cons
 }
 
 
-// Check whether this label is a feasible solution.
-bool Label_ESPPRC::feasible(const Data_Input_ESPPRC &data) const {
+// Get the feasibility and consumption.
+pair<bool, Consumption_ESPPRC> Label_ESPPRC::getFeasibilityAndConsumption(const Data_Input_ESPPRC &data, const TimeType departureTime) const {
+	Consumption_ESPPRC csp;
+	csp.setDepartureTime(departureTime);
+	csp.reset();
 	try {
-		if (path.size() < 3 || path.front() != 0 || path.back() != 0 || tail != 0) return false;
+		if (path.size() < 3 || path.front() != 0 || path.back() != 0 || tail != 0) return make_pair(false, Consumption_ESPPRC());
 		set<int> st(path.begin() + 1, path.end() - 1);
-		if (st.size() != path.size() - 2) return false;
+		if (st.size() != path.size() - 2) return make_pair(false, Consumption_ESPPRC());
 
-		Consumption_ESPPRC csp = consumption;
 		Cost_ESPPRC cst = cost;
-		csp.reset();
 		cst.reset();
 
 		auto pre = path.begin();
-		if (!csp.feasible(data, *pre)) return false;
+		if (!csp.feasible(data, *pre)) return make_pair(false, Consumption_ESPPRC());
 		for (auto suc = pre + 1; suc != path.end(); ++pre, ++suc) {
-			if (!data.ExistingArcs[*pre][*suc]) return false;
+			if (!data.ExistingArcs[*pre][*suc]) return make_pair(false, Consumption_ESPPRC());
 
 			csp.extend(data, *pre, *suc);
-			if (!csp.feasible(data, *suc)) return false;
+			if (!csp.feasible(data, *suc)) return make_pair(false, Consumption_ESPPRC());
 
 			cst.extend(data, *pre, *suc);
 		}
 
-		if (csp != consumption || cst != cost) return false;
+		if (cst != cost) return make_pair(false, Consumption_ESPPRC());
+	}
+	catch (const exception &exc) {
+		printErrorAndExit("getFeasibilityAndConsumption", exc);
+	}
+	return make_pair(true, csp);
+}
+
+
+// Check whether this label is a feasible solution.
+bool Label_ESPPRC::feasible(const Data_Input_ESPPRC &data) const {
+	try {
+		auto prBoolCsp = getFeasibilityAndConsumption(data, getDepartureTime());
+		if (!prBoolCsp.first || prBoolCsp.second != consumption) return false;
 	}
 	catch (const exception &exc) {
 		printErrorAndExit("Label_ESPPRC::feasible", exc);
@@ -807,6 +821,7 @@ multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> DPAlgorithmESPPRC(const Data
 		auxiliary.onlyPotential = true;
 		auxiliary.ub = InfinityPos;
 		resultUB = coreDPAlgorithmESPPRC(data, auxiliary, output);
+		if (resultUB.empty()) throw exception();
 		auxiliary.timeUB = runTime(auxiliary.lastTime);
 		strLog = "Elapsed time: " + numToStr(runTime(auxiliary.startTime)) + '\t' + "The upper bound computing is finished." + '\n';
 		print(data.allowPrintLog, output, strLog);
@@ -814,11 +829,12 @@ multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> DPAlgorithmESPPRC(const Data
 		auxiliary.onlyPotential = false;
 		auxiliary.ub = resultUB.begin()->getReducedCost();
 		auxiliary.lastTime = clock();
-		if (data.mustOptimal || lessThanReal(runTime(auxiliary.startTime), data.minRunTime, PPM) || greaterThanReal(auxiliary.ub, data.maxReducedCost, PPM)) {
+		if (data.mustOptimal || lessThanReal(runTime(auxiliary.startTime), data.minRunTime, PPM) || !lessThanReal(auxiliary.ub, data.maxReducedCost, PPM)) {
 			// DP Algorithm
 			strLog = "Elapsed time: " + numToStr(runTime(auxiliary.startTime)) + '\t' + "Begin the DP procedure." + '\n';
 			print(data.allowPrintLog, output, strLog);
 			resultDP = coreDPAlgorithmESPPRC(data, auxiliary, output);
+			if (resultDP.empty()) throw exception();
 			strLog = "Elapsed time: " + numToStr(runTime(auxiliary.startTime)) + '\t' + "The DP procedure is finished." + '\n';
 			print(data.allowPrintLog, output, strLog);
 		} 
@@ -831,7 +847,17 @@ multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> DPAlgorithmESPPRC(const Data
 	catch (const exception &exc) {
 		printErrorAndExit("DPAlgorithmESPPRC", exc);
 	}
-	return (lessThanReal(resultDP.begin()->getReducedCost(), resultUB.begin()->getReducedCost(), PPM) ? resultDP : resultUB);
+
+	multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> *alternative;
+	if (resultDP.empty()) alternative = &resultUB;
+	else {
+		alternative = (lessThanReal(resultDP.begin()->getReducedCost(), resultUB.begin()->getReducedCost(), PPM) ? &resultDP : &resultUB);
+	}
+	multiset<Label_ESPPRC, Label_ESPPRC_Sort_Criterion> result;
+	for (auto pt = alternative->begin(); pt != alternative->end() && lessThanReal(pt->getReducedCost(), data.maxReducedCost, PPM); ++pt) {
+		result.insert(*pt);
+	}
+	return result;
 }
 
 
@@ -877,7 +903,7 @@ void readDataSolomonESPPRC(const Instance_Solomon &inst, Data_Input_ESPPRC &data
 			data.TimeWindow[i].first = inst.vertices[i].readyTime;
 			data.TimeWindow[i].second = inst.vertices[i].dueTime;
 			data.DistanceWindow[i].first = 0;
-			data.DistanceWindow[i].second = data.TimeWindow[0].second * coefDist;
+			data.DistanceWindow[i].second = (lessThanReal(coefDist, 0, PPM) ? InfinityPos : data.TimeWindow[0].second * coefDist);
 
 			for (int j = 0; j < data.NumVertices; ++j) {
 				data.Quantity[i][j] = 0.5 * (inst.vertices[i].demand + inst.vertices[j].demand);
@@ -891,7 +917,7 @@ void readDataSolomonESPPRC(const Instance_Solomon &inst, Data_Input_ESPPRC &data
 		}
 	}
 	catch (const exception &exc) {
-		printErrorAndExit("readDataESPPRC", exc);
+		printErrorAndExit("readDataSolomonESPPRC", exc);
 	}
 }
 
@@ -947,6 +973,7 @@ void readFromFile(Data_Input_ESPPRC &data, const string &strInput) {
 		string strTemp;
 		getline(ins, strTemp);
 		ins >> data.name >> data.NumVertices;
+		if (Max_Num_Vertex < data.NumVertices) throw exception("Failed file operator.");
 		data.clearAndResize();
 
 		getline(ins, strTemp);
@@ -1000,6 +1027,29 @@ void readFromFile(Data_Input_ESPPRC &data, const string &strInput) {
 }
 
 
+void Data_Input_ESPPRC::graphStatistics() {
+	try {
+		numArcs = 0;
+		numNegArcs = 0;
+		for (int i = 0; i < NumVertices; ++i) {
+			for (int j = 0; j < NumVertices; ++j) {
+				if (ExistingArcs[i][j]) {
+					++numArcs;
+					if (lessThanReal(ReducedCost[i][j], 0, PPM)) {
+						++numNegArcs;
+					}
+				}
+			}
+		}
+		density = double(numArcs) / ((NumVertices - 1) * NumVertices);
+		percentNegArcs = double(numNegArcs) / numArcs;
+	}
+	catch (const exception &exc) {
+		printErrorAndExit("Data_Input_ESPPRC::graphStatistics", exc);
+	}
+}
+
+
 void Data_Input_ESPPRC::preprocess() {
 	try {
 		Consumption_ESPPRC csp(0, 0, TimeWindow[0].first);
@@ -1049,20 +1099,7 @@ void Data_Input_ESPPRC::preprocess() {
 			}
 		}
 
-		numArcs = 0;
-		numNegArcs = 0;
-		for (int i = 0; i < NumVertices; ++i) {
-			for (int j = 0; j < NumVertices; ++j) {
-				if (ExistingArcs[i][j]) {
-					++numArcs;
-					if (lessThanReal(ReducedCost[i][j], 0, PPM)) {
-						++numNegArcs;
-					}
-				}
-			}
-		}
-		density = double(numArcs) / ((NumVertices - 1) * NumVertices);
-		percentNegArcs = double(numNegArcs) / numArcs;
+		graphStatistics();
 	}
 	catch (const exception &exc) {
 		printErrorAndExit("Data_Input_ESPPRC::preprocess", exc);
