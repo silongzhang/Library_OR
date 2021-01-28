@@ -130,19 +130,40 @@ void makeAllCuts(const int N, IloRangeArray cuts, const IloBoolVarArray2& x) {
 }
 
 
-vector<int> detectTour(const int N, const IloCplex& cplex, const IloBoolVarArray2& x, const int origin) {
+vector<int> detectTour(const vector<vector<double>>& value, const int N, const int origin) {
 	vector<int> tour;
 	try {
 		int pos = origin;
 		do {
 			tour.push_back(pos);
 			for (int i = 0; i < N; ++i) {
-				if (i != pos && equalToReal(cplex.getValue(x[pos][i]), 1, PPM)) {
+				if (i != pos && equalToReal(value[pos][i], 1, PPM)) {
 					pos = i;
 					break;
 				}
 			}
 		} while (pos != origin);
+	}
+	catch (const exception& exc) {
+		printErrorAndExit("detectTour", exc);
+	}
+	return tour;
+}
+
+
+vector<int> detectTour(const int N, const IloCplex& cplex, const IloBoolVarArray2& x, const int origin) {
+	vector<int> tour;
+	try {
+		if (N != x.getSize()) throw exception();
+		vector<vector<double>> value(N, vector<double>(N));
+		for (int i = 0; i < N; ++i) {
+			for (int j = 0; j < N; ++j) {
+				if (i != j) {
+					value[i][j] = cplex.getValue(x[i][j]);
+				}
+			}
+		}
+		tour = detectTour(value, N, origin);
 	}
 	catch (const exception& exc) {
 		printErrorAndExit("detectTour", exc);
@@ -166,6 +187,38 @@ void setConstraintsSubtour(IloModel model, IloBoolVarArray2 x, const vector<int>
 	}
 	catch (const exception& exc) {
 		printErrorAndExit("setConstraintsSubtour", exc);
+	}
+}
+
+
+ILOLAZYCONSTRAINTCALLBACK3(DFJLazyCallback, IloBoolVarArray2, x, int, N, int, origin) {
+	try {
+		if (N != x.getSize()) throw exception();
+		vector<vector<double>> value(N, vector<double>(N));
+		for (int i = 0; i < N; ++i) {
+			for (int j = 0; j < N; ++j) {
+				if (i != j) {
+					value[i][j] = getValue(x[i][j]);
+				}
+			}
+		}
+		auto tour = detectTour(value, N, origin);
+
+		if (tour.size() != N) {
+			IloExpr expr(getEnv());
+			for (const auto& i : tour) {
+				for (const auto& j : tour) {
+					if (i != j) {
+						expr += x[i][j];
+					}
+				}
+			}
+			add(expr <= int(tour.size() - 1));
+			expr.end();
+		}
+	}
+	catch (const exception& exc) {
+		printErrorAndExit("DFJLazyCallback", exc);
 	}
 }
 
@@ -208,7 +261,54 @@ pair<double, double> MTZFormulation(const int N, const vector<vector<double>>& C
 
 
 // Note that vertices are labeled with 0, 1, 2, ..., N - 1.
-pair<double, double> DFJFormulation(const int N, const vector<vector<double>>& Cost, const double timeLimit) {
+pair<double, double> DFJIteration(const int N, const vector<vector<double>>& Cost, const double timeLimit) {
+	pair<double, double> result;
+	IloEnv env;
+	try {
+		if (!checkInput(N, Cost)) throw exception();
+
+		// Define the variables.
+		IloBoolVarArray2 x(env, N);
+		for (int i = 0; i < N; ++i)
+			x[i] = IloBoolVarArray(env, N);
+
+		// Define the model.
+		IloModel model(env);
+		setObjective(N, Cost, model, x);
+		setConstraintsOutDegree(N, model, x);
+		setConstraintsInDegree(N, model, x);
+		setConstraintsFixZero(N, model, x);
+
+		// Solve the model.
+		clock_t last = clock();
+		IloCplex cplex(model);
+		int numAppliedLazyConstraints = 0;
+		while (lessThanReal(runTime(last), timeLimit, PPM)) {
+			cplex.solve();
+			auto tour = detectTour(N, cplex, x, 0);
+			if (tour.size() == N)
+				break;
+			else {
+				setConstraintsSubtour(model, x, tour);
+				++numAppliedLazyConstraints;
+			}
+		}
+
+		env.out() << "# of applied lazy constraints: " << numAppliedLazyConstraints << endl;
+		env.out() << "solution status is " << cplex.getStatus() << endl;
+		env.out() << "solution value  is " << cplex.getObjValue() << endl;
+		result = make_pair(cplex.getObjValue(), cplex.getMIPRelativeGap());
+	}
+	catch (const exception& exc) {
+		printErrorAndExit("DFJFormulation", exc);
+	}
+	env.end();
+	return result;
+}
+
+
+// Note that vertices are labeled with 0, 1, 2, ..., N - 1.
+pair<double, double> DFJCallback(const int N, const vector<vector<double>>& Cost, const double timeLimit) {
 	pair<double, double> result;
 	IloEnv env;
 	try {
@@ -229,19 +329,9 @@ pair<double, double> DFJFormulation(const int N, const vector<vector<double>>& C
 		// Solve the model.
 		IloCplex cplex(model);
 		cplex.setParam(IloCplex::Param::TimeLimit, timeLimit);
-		int numAppliedLazyConstraints = 0;
-		while (true) {
-			cplex.solve();
-			auto tour = detectTour(N, cplex, x, 0);
-			if (tour.size() == N)
-				break;
-			else {
-				setConstraintsSubtour(model, x, tour);
-				++numAppliedLazyConstraints;
-			}
-		}
+		cplex.use(DFJLazyCallback(env, x, N, 0));
+		cplex.solve();
 
-		env.out() << "# of applied lazy constraints: " << numAppliedLazyConstraints << endl;
 		env.out() << "solution status is " << cplex.getStatus() << endl;
 		env.out() << "solution value  is " << cplex.getObjValue() << endl;
 		result = make_pair(cplex.getObjValue(), cplex.getMIPRelativeGap());
@@ -285,8 +375,9 @@ void testTSP(const string& folderInput, int begin, int end, int incre, const str
 
 		ofstream os(fileOutput);
 		if (!os) throw exception();
-		os << "Instance" << '\t' << "# of vertices" << '\t' << "Obj(MTZ)" << '\t' << "Gap(MTZ)" << '\t' << "Time(MTZ)" << '\t' 
-			<< "Obj(DFJ)" << '\t' << "Gap(DFJ)" << '\t' << "Time(DFJ)" << endl;
+		os << "Instance" << '\t' << "# of vertices" << '\t' << "Obj(MTZ)" << '\t' << "Gap(MTZ)" << '\t' << "Time(MTZ)" << '\t'
+			<< "Obj(DFJIteration)" << '\t' << "Time(DFJIteration)" << '\t'
+			<< "Obj(DFJCallback)" << '\t' << "Gap(DFJCallback)" << '\t' << "Time(DFJCallback)" << endl;
 
 		for (const auto& name : names) {
 			string inputFile = folderInput + name;
@@ -310,12 +401,21 @@ void testTSP(const string& folderInput, int begin, int end, int incre, const str
 				cout << "######################################" << endl;
 				cout << "######################################" << endl;
 				cout << "######################################" << endl;
-				auto resultDFJ = DFJFormulation(N, Cost, timeLimit);
-				auto timeDFJ = runTime(last);
+				auto resultDFJIteration = DFJIteration(N, Cost, timeLimit);
+				auto timeDFJIteration = runTime(last);
 				cout << endl << endl << endl;
 
-				os << name << '\t' << N << '\t' << resultMTZ.first << '\t' << resultMTZ.second << '\t' << timeMTZ << '\t' 
-					<< resultDFJ.first << '\t' << resultDFJ.second << '\t' << timeDFJ << endl;
+				last = clock();
+				cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << endl;
+				cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << endl;
+				cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << endl;
+				auto resultDFJCallback = DFJCallback(N, Cost, timeLimit);
+				auto timeDFJCallback = runTime(last);
+				cout << endl << endl << endl;
+
+				os << name << '\t' << N << '\t' << resultMTZ.first << '\t' << resultMTZ.second << '\t' << timeMTZ << '\t' <<
+					resultDFJIteration.first << '\t' << timeDFJIteration << '\t' <<
+					resultDFJCallback.first << '\t' << resultDFJCallback.second << '\t' << timeDFJCallback << endl;
 			}
 		}
 		os.close();
