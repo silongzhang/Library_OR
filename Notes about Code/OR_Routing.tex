@@ -66,5 +66,23 @@
 			x_{ij} \in \{0, 1\} \qquad & 1 \le i \ne j \le n 
 		\end{align*}
 
+	\subsection{Benders Decomposition}
+		\begin{align*}
+			\min \sum_{(i, j) \in \mathbb{A}} c_{ij} x_{ij} & \\
+			s.t. \qquad \sum_{(i, j) \in \mathbb{A}} x_{ij} = 1 & \qquad i \in \mathbb{V} \\
+			\sum_{(j, i) \in \mathbb{A}} x_{ji} = 1 & \qquad i \in \mathbb{V} \\
+			\sum_{(i, j) \in \mathbb{A}} y_{kij} - \sum_{(j, i) \in \mathbb{A}} y_{kji} = 
+				\left\{
+					\begin{aligned}
+						1 & \qquad \text{ if } i = 0 \\
+						-1 & \qquad \text{ if } i = k \\
+						0 & \qquad \text{ otherwise } 
+					\end{aligned}
+				\right. & \qquad k \in \mathbb{V} \setminus \{0\}, i \in \mathbb{V} \\
+			y_{kij} - x_{ij} \le 0 & \qquad k \in \mathbb{V} \setminus \{0\}, (i, j) \in \mathbb{A} \\
+			x_{ij} \in \{0, 1\} & \qquad (i, j) \in \mathbb{A} \\
+			y_{kij} \ge 0 & \qquad k \in \mathbb{V} \setminus \{0\}, (i, j) \in \mathbb{A} 
+		\end{align*}
+
 
 \end{document}
