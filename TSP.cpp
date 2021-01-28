@@ -283,10 +283,11 @@ pair<double, double> DFJIteration(const int N, const vector<vector<double>>& Cos
 		clock_t last = clock();
 		IloCplex cplex(model);
 		int numAppliedLazyConstraints = 0;
-		while (lessThanReal(runTime(last), timeLimit, PPM)) {
+		while (true) {
+			env.out() << "# of applied lazy constraints: " << numAppliedLazyConstraints << '\t' << "elapsed time: " << runTime(last) << endl;
 			cplex.solve();
 			auto tour = detectTour(N, cplex, x, 0);
-			if (tour.size() == N)
+			if (tour.size() == N || greaterThanReal(runTime(last), timeLimit, PPM))
 				break;
 			else {
 				setConstraintsSubtour(model, x, tour);
@@ -294,7 +295,7 @@ pair<double, double> DFJIteration(const int N, const vector<vector<double>>& Cos
 			}
 		}
 
-		env.out() << "# of applied lazy constraints: " << numAppliedLazyConstraints << endl;
+		env.out() << "# of applied lazy constraints: " << numAppliedLazyConstraints << '\t' << "elapsed time: " << runTime(last) << endl;
 		env.out() << "solution status is " << cplex.getStatus() << endl;
 		env.out() << "solution value  is " << cplex.getObjValue() << endl;
 		result = make_pair(cplex.getObjValue(), cplex.getMIPRelativeGap());
